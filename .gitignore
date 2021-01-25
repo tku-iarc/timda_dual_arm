@@ -1,0 +1,11 @@
+.vscode
+
+*.swp
+*.pyc
+*.pcd
+*weights
+*.h5
+.DS_Store
+*.png
+
+CATKIN_IGNORE

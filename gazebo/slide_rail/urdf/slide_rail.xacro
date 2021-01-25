@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<!-- Revolute-Revolute Manipulator -->
+<robot name="slide_rail" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.0851417739507414 -0.00235325608423029 0.461901876327646"
+        rpy="0 0 0" />
+      <mass
+        value="1300.2157378026818" />
+      <inertia
+        ixx="1.5723643860749"
+        ixy="-0.0018400889955638"
+        ixz="-0.0259807481556023"
+        iyy="1.56653528372694"
+        iyz="-0.0223413171800455"
+        izz="0.0334677964955424" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://slide_rail/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://slide_rail/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="slide_right">
+    <inertial>
+      <origin
+        xyz="0 0.022625966524659 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.2915148495066668" />
+      <inertia
+        ixx="1.50001518227245"
+        ixy="6.65500499430702E-09"
+        ixz="-5.17853701338548E-09"
+        iyy="1.50418097290043"
+        iyz="-1.04084246775258E-09"
+        izz="0.029919292165612" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://slide_rail/meshes/Arm_Base_R_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://slide_rail/meshes/Arm_Base_R_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_right"
+    type="prismatic">
+    <origin
+      xyz="-0.08 -0.0925 0.88886"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="slide_right" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-0.8"
+      upper="0"
+      effort="500"
+      velocity="100" />
+  </joint>
+  <link
+    name="slide_left">
+    <inertial>
+      <origin
+        xyz="0 -0.022625966524659 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.2915148495066669" />
+      <inertia
+        ixx="1.501518227246"
+        ixy="6.655004994278E-09"
+        ixz="5.1785370134074E-09"
+        iyy="1.50418097290043"
+        iyz="1.04084246778742E-09"
+        izz="0.29919292165613" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://slide_rail/meshes/Arm_Base_L_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://slide_rail/meshes/Arm_Base_L_Link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_left"
+    type="prismatic">
+    <origin
+      xyz="-0.08 0.0925 0.88886"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="slide_left" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-0.8"
+      upper="0"
+      effort="500"
+      velocity="100" />
+  </joint>
+
+  <transmission name="slide_tran_r">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_right">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="slide_motor_r">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="slide_tran_l">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_left">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="slide_motor_l">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+</robot>
