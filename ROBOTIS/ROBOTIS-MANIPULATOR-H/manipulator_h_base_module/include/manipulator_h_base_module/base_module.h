@@ -49,6 +49,12 @@
 #include "manipulator_h_base_module_msgs/GetJointPose.h"
 #include "manipulator_h_base_module_msgs/GetKinematicsPose.h"
 #include "manipulator_h_base_module_msgs/CheckRangeLimit.h"
+//===================robotiq2f_gripper=================
+//#include "robotiq_2f_gripper_msgs/CommandRobotiqGripperFeedback.h"
+//#include "robotiq_2f_gripper_msgs/CommandRobotiqGripperResult.h"
+#include "robotiq_2f_gripper_msgs/CommandRobotiqGripperAction.h"
+//#include "robotiq_2f_gripper_msgs/CommandRobotiqGripperGoal.h"
+//====================================================
 
 #include "manipulator_h_kinematics_dynamics/manipulator_h_kinematics_dynamics.h"
 #include "robotis_state.h"
@@ -56,7 +62,8 @@
 
 #include "robotis_controller/robotis_controller.h"
 #include "robotis_device/robot.h"
-
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
 
 namespace robotis_manipulator_h
 {
@@ -118,6 +125,11 @@ public:
   void jointPoseMsgCallback(const manipulator_h_base_module_msgs::JointPose::ConstPtr& msg);
   void kinematicsPoseMsgCallback(const manipulator_h_base_module_msgs::KinematicsPose::ConstPtr& msg);
   void p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg);   //new
+  //=========robotiq2f_gripper=============================================================
+  void grapPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg);
+  void robotiq_2f_gripper_Client();
+  void releasePoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg);
+  //=========================================
 
   bool getJointPoseCallback(manipulator_h_base_module_msgs::GetJointPose::Request &req,
                             manipulator_h_base_module_msgs::GetJointPose::Response &res);

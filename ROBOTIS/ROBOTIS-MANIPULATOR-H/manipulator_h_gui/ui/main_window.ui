@@ -353,6 +353,13 @@
              </property>
             </widget>
            </item>
+          <item>
+           <widget class="QPushButton" name="des_Grap_button">
+            <property name="text">
+              <string>Send Grap Pos.</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -546,6 +553,13 @@
               </property>
             </widget>
             </item>
+          <item>
+           <widget class="QPushButton" name="des_Release_button">
+            <property name="text">
+              <string>Send Release Pos.</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>

@@ -90,6 +90,11 @@ public Q_SLOTS:
     void on_des_pos_button_clicked( bool check );
     void on_des_p2p_button_clicked( bool check );
 
+    //===========robotiq_2f_gripper===================
+    void on_des_Grap_button_clicked( bool check );
+    void on_des_Release_button_clicked( bool check );
+    //===============================================
+    
     void on_ini_pose_button_clicked( bool check );
     void on_set_mode_button_clicked( bool check );
     void on_relative_xp_button_clicked( bool check );

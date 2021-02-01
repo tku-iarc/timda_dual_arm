@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   robotis_controller
   manipulator_h_base_module
+  linear_motion
 )
 
 ################################################################################

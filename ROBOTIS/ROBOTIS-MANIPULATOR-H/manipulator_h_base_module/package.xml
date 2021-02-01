@@ -30,4 +30,7 @@
   <depend>boost</depend>
   <depend>eigen</depend>
   <depend>yaml-cpp</depend>
+  <depend>linear_motion</depend>
+  <depend>actionlib</depend>
+  <depend>robotiq_2f_gripper_msgs</depend>
 </package>
