@@ -556,7 +556,7 @@
           <item>
            <widget class="QPushButton" name="des_Release_button">
             <property name="text">
-              <string>Send Release Pos.</string>
+              <string>Send Release Gripper.</string>
              </property>
             </widget>
            </item>
