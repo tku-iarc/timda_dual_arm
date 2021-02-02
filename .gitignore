@@ -6,6 +6,5 @@
 *weights
 *.h5
 .DS_Store
-*.png
 
 CATKIN_IGNORE
