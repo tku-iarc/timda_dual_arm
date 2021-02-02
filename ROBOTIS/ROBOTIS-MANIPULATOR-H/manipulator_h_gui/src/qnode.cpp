@@ -70,6 +70,11 @@ bool QNode::init() {
   kinematics_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::KinematicsPose>("kinematics_pose_msg", 0);
   p2p_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::P2PPose>("p2p_pose_msg", 0);
 
+  //////////////////////////robitq2f_85////////////////////////////////////////////////////////////////////////                                                        
+  grap_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::P2PPose>("grap_pose_msg", 0);
+  release_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::P2PPose>("release_pose_msg", 0);
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   get_joint_pose_client_ = n.serviceClient<manipulator_h_base_module_msgs::GetJointPose>("get_joint_pose", 0);
   get_kinematics_pose_client_ = n.serviceClient<manipulator_h_base_module_msgs::GetKinematicsPose>("get_kinematics_pose", 0);
 
@@ -163,6 +168,20 @@ void QNode::sendP2PPoseMsg( manipulator_h_base_module_msgs::P2PPose msg )
   log( Info , "Send P2P Pose Msg" );
 }
 
+//========robotiq_2f_gripper=======================
+void QNode::sendGrapPoseMsg( manipulator_h_base_module_msgs::P2PPose msg )
+{
+  grap_pose_msg_pub_.publish( msg );
+
+  log( Info , "Send Grap Pose Msg" );
+}
+void QNode::sendReleasePoseMsg( manipulator_h_base_module_msgs::P2PPose msg )
+{
+  release_pose_msg_pub_.publish( msg );
+
+  log( Info , "Send Release Pose Msg" );
+}
+//=============================================================
 void QNode::sendIniPoseMsg( std_msgs::String msg )
 {
   ini_pose_msg_pub_.publish ( msg );
