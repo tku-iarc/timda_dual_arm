@@ -26,7 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
   manipulator_h_kinematics_dynamics
   linear_motion
   robotiq_2f_gripper_msgs
-  robotiq_2f_gripper_control
+  #robotiq_2f_gripper_control
   actionlib
 )
 

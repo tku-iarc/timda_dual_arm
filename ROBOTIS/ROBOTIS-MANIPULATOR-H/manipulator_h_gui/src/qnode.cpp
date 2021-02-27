@@ -71,8 +71,8 @@ bool QNode::init() {
   p2p_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::P2PPose>("p2p_pose_msg", 0);
 
   //////////////////////////robitq2f_85////////////////////////////////////////////////////////////////////////                                                        
-  grap_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::P2PPose>("grap_pose_msg", 0);
-  release_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::P2PPose>("release_pose_msg", 0);
+  grap_alcohol_msg_pub_ = n.advertise<std_msgs::String>("grap_alcohol_msg", 0);
+  release_pose_msg_pub_ = n.advertise<std_msgs::String>("release_pose_msg", 0);
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   get_joint_pose_client_ = n.serviceClient<manipulator_h_base_module_msgs::GetJointPose>("get_joint_pose", 0);
@@ -169,13 +169,13 @@ void QNode::sendP2PPoseMsg( manipulator_h_base_module_msgs::P2PPose msg )
 }
 
 //========robotiq_2f_gripper=======================
-void QNode::sendGrapPoseMsg( manipulator_h_base_module_msgs::P2PPose msg )
+void QNode::sendGrapAlcoholMsg( std_msgs::String msg )
 {
-  grap_pose_msg_pub_.publish( msg );
+  grap_alcohol_msg_pub_.publish( msg );
 
-  log( Info , "Send Grap Pose Msg" );
+  log( Info , "Send Grap Alcohol Msg" );
 }
-void QNode::sendReleasePoseMsg( manipulator_h_base_module_msgs::P2PPose msg )
+void QNode::sendReleasePoseMsg( std_msgs::String msg )
 {
   release_pose_msg_pub_.publish( msg );
 

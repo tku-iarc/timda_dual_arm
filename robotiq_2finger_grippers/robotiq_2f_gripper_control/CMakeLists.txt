@@ -45,7 +45,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  #include 
+  include 
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -77,3 +77,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE
 )
+
+add_executable(gripper src/robotiq_2f_gripper_control/gripper_control.cpp)
+target_link_libraries(gripper ${catkin_LIBRARIES})
+#add_dependencies(talker dual_arm_control_generate_messages_cpp)
