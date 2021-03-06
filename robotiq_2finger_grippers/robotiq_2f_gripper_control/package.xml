@@ -21,6 +21,7 @@
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   
+
   <build_depend>actionlib</build_depend>
   <build_depend>actionlib_msgs</build_depend>
   <exec_depend>actionlib</exec_depend>
@@ -28,4 +29,18 @@
 
   <depend>robotiq_2f_gripper_msgs</depend>
 
+  <build_depend>robotis_controller</build_depend>
+  <depend>roslib</depend>
+  <depend>geometry_msgs</depend>
+  <depend>robotis_controller_msgs</depend>
+  <depend>manipulator_h_base_module_msgs</depend>
+  <depend>cmake_modules</depend>
+  <depend>robotis_math</depend>
+  <depend>robotis_framework_common</depend>
+  <depend>manipulator_h_kinematics_dynamics</depend>
+  <depend>linear_motion</depend>
+  <depend>boost</depend>
+  <depend>eigen</depend>
+  <depend>manipulator_h_base_module</depend>
+  <depend>moveit_msgs</depend>
 </package>

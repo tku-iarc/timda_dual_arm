@@ -22,7 +22,7 @@
 
     <group ns="$(arg side)_arm">
 
-    <node pkg="robotiq_2f_gripper_control" type="gripper" 
+    <node pkg="robotiq_2f_gripper_control" type="robotiq_2f_gripper_control" 
         name="gripper_control" respawn="false" output="screen">
     </node>
     </group>

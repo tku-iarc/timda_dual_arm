@@ -2,7 +2,7 @@
 
 <launch>
     <arg name="en_sim" default="false"  />
-    <arg name="side"   default="right" />
+    <arg name="side"   default="left" />
     
     <group ns="$(arg side)_arm">
 	  <node name="manipulator_h_manager" pkg="manipulator_h_manager" type="manipulator_h_manager" output="screen">
