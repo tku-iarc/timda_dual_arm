@@ -1,0 +1,11 @@
+<launch>
+    <arg name="side"   default="left" />
+    <group ns="$(arg side)_arm">
+
+    <node pkg="strategy_dual_arm" type="strategy_dual_arm" 
+        name="wipe" respawn="false" output="screen">
+    <param name="robot_name"             value="$(arg side)_arm"/>
+    </node>
+
+    </group>
+</launch>

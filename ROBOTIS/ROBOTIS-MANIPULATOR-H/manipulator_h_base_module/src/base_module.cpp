@@ -140,12 +140,6 @@ void BaseModule::queueThread()
                                                                &BaseModule::kinematicsPoseMsgCallback, this);
   ros::Subscriber p2p_pose_msg_sub = ros_node.subscribe("p2p_pose_msg", 5,
                                                                &BaseModule::p2pPoseMsgCallback, this);
-  //////////////////////////robitq2f_85////////////////////////////////////////////////////////////////////////                                                        
-  ros::Subscriber grap_pose_msg_sub = ros_node.subscribe("grap_pose_msg", 5,
-                                                               &BaseModule::grapPoseMsgCallback, this); 
-  ros::Subscriber release_pose_msg_sub = ros_node.subscribe("release_pose_msg", 5,
-                                                               &BaseModule::releasePoseMsgCallback, this);                                                                
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("get_joint_pose",
                                                                        &BaseModule::getJointPoseCallback, this);
@@ -404,163 +398,6 @@ void BaseModule::p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPos
   return;
 }
 // =======================================================================================================================
-//==========================================roboticq2f_85======================================================
-void BaseModule::robotiq_2f_gripper_Client(){
-
-  actionlib::SimpleActionClient<robotiq_2f_gripper_msgs::CommandRobotiqGripperAction> grap_action_client_("/command_robotiq_action");
-  //grap_action_client_.waitForServer(ros::Duration(0.0));
-  ROS_INFO("Connected to grap_action server");
-
-  ROS_INFO("Action server started.");
-  robotiq_2f_gripper_msgs::CommandRobotiqGripperGoal goal;
-  //robotiq_2f_gripper_msgs::JointConstraint jc;
-  //robotiq_2f_gripper_msgs::Constraints ct;
-  //goal = CommandRobotiqGripperGoal()
-  bool False = false;
-  goal.emergency_release = False;
-  goal.stop = False;
-  goal.position = 0.001;
-  goal.speed = 0.1;
-  goal.force = 400.0;
-
-  grap_action_client_.sendGoalAndWait(goal);
-  ROS_INFO("start send goal to Gripper");
-  bool finished_before_timeout = grap_action_client_.waitForResult(ros::Duration(0.0));
-
-  if (finished_before_timeout)                             
-  {
-    actionlib::SimpleClientGoalState state = grap_action_client_.getState();
-    ROS_INFO("Action finished: %s",state.toString().c_str());
-    //Result = *move_action_client_.getResult();
-    return;
-  }
-
-  else
-  {
-    ROS_ERROR("Failed to call service");
-    return;
-  }
-  ROS_INFO("Action did not finish before the time out.");
-
-  return;
-}
-//===============================================================
-void BaseModule::releasePoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg){
-
-  actionlib::SimpleActionClient<robotiq_2f_gripper_msgs::CommandRobotiqGripperAction> release_action_client_("/command_robotiq_action");
-  //release_action_client_.waitForServer(ros::Duration(0.0));
-  ROS_INFO("Connected to release_action server");
-
-  ROS_INFO("Action server started.");
-  robotiq_2f_gripper_msgs::CommandRobotiqGripperGoal goal;
-  //robotiq_2f_gripper_msgs::JointConstraint jc;
-  //robotiq_2f_gripper_msgs::Constraints ct;
-  //goal = CommandRobotiqGripperGoal()
-  bool False = false;
-  goal.emergency_release = False;
-  goal.stop = False;
-  goal.position = 1.001;
-  goal.speed = 1.1;
-  goal.force = 400.0;
-
-  release_action_client_.sendGoalAndWait(goal);
-  ROS_INFO("start send Release gripper");
-  bool finished_before_timeout = release_action_client_.waitForResult(ros::Duration(0.0));
-
-  if (finished_before_timeout)                             
-  {
-    actionlib::SimpleClientGoalState state = release_action_client_.getState();
-    ROS_INFO("Action finished: %s",state.toString().c_str());
-    //Result = *move_action_client_.getResult();
-    return;
-  }
-
-  else
-  {
-    ROS_ERROR("Failed to call service");
-    return;
-  }
-  ROS_INFO("Action did not finish before the time out.");
-
-  return;
-}
-//===============================================================
-void BaseModule::grapPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg)
-{
-  // std::cout<<"asdfasdfasdf"<<std::endl;
-  if (enable_ == false)
-    return;
-
-  robotis_->p2p_pose_msg_ = *msg;
-
-  robotis_->ik_id_start_ = 0;
-  robotis_->ik_id_end_   = END_LINK;
-
-  Eigen::Vector3d p2p_positoin;
-  Eigen::Matrix3d p2p_rotation;
-
-  int     max_iter    = 30;
-  double  ik_tol      = 1e-3;
-
-  p2p_positoin << robotis_->p2p_pose_msg_.pose.position.x, 
-                  robotis_->p2p_pose_msg_.pose.position.y, 
-                  robotis_->p2p_pose_msg_.pose.position.z;
-
-  Eigen::Quaterniond p2p_quaterniond(robotis_->p2p_pose_msg_.pose.orientation.w,
-                                        robotis_->p2p_pose_msg_.pose.orientation.x,
-                                        robotis_->p2p_pose_msg_.pose.orientation.y,
-                                        robotis_->p2p_pose_msg_.pose.orientation.z);
-
-  double p2p_phi = robotis_->p2p_pose_msg_.phi;
-
-  p2p_rotation = robotis_framework::convertQuaternionToRotation(p2p_quaterniond);
-
-  manipulator_->forwardKinematics(7);
-  // std::cout<<"p2p_positoinp2p_positoin"<<std::endl<<p2p_positoin<<std::endl;
-  // std::cout<<"p2p_rotationp2p_rotation"<<std::endl<<p2p_rotation<<std::endl;
-  // std::cout<<"======================"<<manipulator_<<"===================="<<std::endl;
-
-  robotis_->is_ik = true;
-  
-  bool    slide_success = manipulator_->slideInverseKinematics(p2p_positoin, p2p_rotation, 
-                                                            slide_->slide_pos, slide_->goal_slide_pos);
-
-  // std::cout<<"<<<<<<<<<<<<<<<<<<<slide_->goal_slide_pos<<<<<<<<<<<<<<<<<"<<std::endl<<slide_->goal_slide_pos<<std::endl;
-  bool    ik_success = manipulator_->inverseKinematics(robotis_->ik_id_end_,
-                                                            p2p_positoin, p2p_rotation, p2p_phi, slide_->goal_slide_pos, true);
- 
-  if (ik_success == true && slide_success == true)
-  {
-    manipulator_h_base_module_msgs::JointPose p2p_msg;
-
-    for ( int id = 1; id <= MAX_JOINT_ID; id++ )
-    {
-      p2p_msg.name.push_back(manipulator_->manipulator_link_data_[id]->name_);
-      p2p_msg.value.push_back(manipulator_->manipulator_link_data_[id]->joint_angle_);
-    }
-    p2p_msg.slide_pos = slide_->goal_slide_pos;
-    p2p_msg.speed     = robotis_->p2p_pose_msg_.speed;
-    robotis_->joint_pose_msg_ = p2p_msg;
-    //std::cout<<"======================"<<manipulator_->manipulator_link_data_[1]->joint_angle_<<"===================="<<std::endl;
-    if (robotis_->is_moving_ == false)
-    {
-      tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateJointTrajProcess, this));
-      delete tra_gene_thread_;
-    }
-    else
-    {
-      ROS_INFO("previous task is alive");
-    }
-  }
-  else
-  {
-    ROS_INFO("[end] send trajectory (ik failed)");
-    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory (p2p IK Failed)");
-    return;
-  }
-  robotis_->is_ik = false;
-  return;
-}
 void BaseModule::jointPoseMsgCallback(const manipulator_h_base_module_msgs::JointPose::ConstPtr& msg)
 {
   if (enable_ == false)
@@ -889,11 +726,6 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
   {
     ROS_INFO("[end] send trajectory");
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory");
-    //robotiq_2f_gripper_Client();
-    tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::robotiq_2f_gripper_Client, this));
-    delete tra_gene_thread_;
-    ///////////////////
-    // slide_->is_end = true;
     robotis_->is_moving_ = false;
     robotis_->ik_solve_ = false;
     robotis_->cnt_ = 0;
