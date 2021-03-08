@@ -179,15 +179,15 @@ void WipeStrategy::on_des_p2p()
   msg.pose.orientation.w = QR.w();
   msg.phi = phi;
 
-  std::cout<<msg.speed<<std::endl;
-  std::cout<<msg.pose.position.x<<std::endl;
-  std::cout<<msg.pose.position.y<<std::endl;
-  std::cout<<msg.pose.position.z<<std::endl;
-  std::cout<<msg.pose.orientation.x<<std::endl;
-  std::cout<<msg.pose.orientation.y<<std::endl;
-  std::cout<<msg.pose.orientation.z<<std::endl;
-  std::cout<<msg.pose.orientation.w<<std::endl;
-  std::cout<<msg.phi<<std::endl;
+  // std::cout<<msg.speed<<std::endl;
+  // std::cout<<msg.pose.position.x<<std::endl;
+  // std::cout<<msg.pose.position.y<<std::endl;
+  // std::cout<<msg.pose.position.z<<std::endl;
+  // std::cout<<msg.pose.orientation.x<<std::endl;
+  // std::cout<<msg.pose.orientation.y<<std::endl;
+  // std::cout<<msg.pose.orientation.z<<std::endl;
+  // std::cout<<msg.pose.orientation.w<<std::endl;
+  // std::cout<<msg.phi<<std::endl;
 
 
   strategy_msg.sendP2PPoseMsg( msg );

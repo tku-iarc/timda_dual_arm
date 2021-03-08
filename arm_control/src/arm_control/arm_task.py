@@ -5,7 +5,7 @@
 
 import rospy
 import tf
-import queue
+import Queue as queue
 import copy
 # import object_distribtion
 
@@ -604,9 +604,9 @@ class ArmTask:
                 elif 'Off' in cmd['suc_cmd']:
                     self.suction.gripper_vacuum_off()
             
-            if cmd['gripper_cmd'] is not None:
-                if 'open' in cmd['gripper_cmd']:
-                    self.
+            # if cmd['gripper_cmd'] is not None:
+            #     if 'open' in cmd['gripper_cmd']:
+            #         self.
 
         if not self.is_busy and not self.occupied:
             if self.__cmd_queue.empty() and self.__cmd_queue_2nd.empty():
@@ -616,3 +616,36 @@ class ArmTask:
                 self.status = Status.occupied
         elif not self.status == Status.grasping:
             self.status = Status.busy
+if __name__ == '__main__':
+    rospy.init_node('test_arm_task')
+    print("Test arm task script")
+    
+    a = ArmTask('right_arm')
+    rospy.sleep(0.3)
+
+    a.set_speed(100)
+    a.jointMove(0, (0, -1, 0, 1, 0, 0, 0))
+    a.set_speed(20)
+    a.wait_busy()
+    
+    a.ikMove('p2p', (0, -0.3, -0.9), (0, 0, 0), 30) 
+    a.set_speed(100)
+    a.wait_busy()
+    
+    a.noa_move_suction('p2p', -45, n=0, s=0, a=-0.1)
+    a.wait_busy()
+        
+    a.singleJointMove(0,-0.2)
+    a.wait_busy()
+        
+    a.jointMove(0, (0, -1, 0, 1, 0, 0, 0))
+    a.wait_busy()
+        
+    a.singleJointMove(2,0.5)
+    a.wait_busy()
+        
+    a.relative_move_pose('p2p', (0, 0.1, 0) )
+    a.wait_busy()
+    
+    a.back_home()
+    a.wait_busy()
