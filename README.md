@@ -1,28 +1,20 @@
-# TKU TIMDA for WRS 2020
+# TKU TIMDA Dual-Arm
 
 ## Requirements
-
-### Setup:
-```bash
-$ mkdir -p wrs_ws/src && cd wrs_ws
-$ git clone https://github.com/tku-iarc/wrs2020.git src/
-```
 
 ### ROS Packages:
 ```bash
 $ sudo apt-get install ros-<distro>-pcl-ros
 $ sudo apt-get install ros-<distro>-camera-info-manager
+$ sudo apt-get install ros-<distro>-position-controllers
+$ sudo apt-get install ros-<distro>-velocity-controllers
+$ sudo apt-get install ros-<distro>-effort-controllers
+$ sudo apt-get install ros-<distro>-joint-state-controller
+$ sudo apt-get install ros-<distro>-joint-state-publisher
+$ sudo apt-get install ros-<distro>-aruco-detect
+$ sudo apt-get install ros-<distro>-visp-hand2eye-calibration
 ```
-mir_robot requirements:
-```bash
-$ sudo apt-get install ros-<distro>-amcl
-$ sudo apt-get install ros-<distro>-robot-localization
-$ sudo apt-get install ros-<distro>-map-server
-$ sudo apt-get install ros-<distro>-sbpl-lattice-planner
-$ sudo apt-get install ros-<distro>-nav-core-adapter
-$ sudo apt-get install ros-<distro>-dwb-plugins
-```
-
+ros-melodic-position-controllers ros-melodic-velocity-controllers ros-melodic-effort-controllers ros-melodic-joint-state-controller ros-melodic-joint-state-publisher
 ### Install modbus library `libmodbus`:
 **See [linear_motion/README.md](linear_motion/README.md)**
 
