@@ -225,7 +225,7 @@ void WipeStrategy::on_des_Grap_Alcohol()
 {
   std_msgs::String msg;
 
-  msg.data ="Gripper_grap";
+  msg.data ="Gripper_grap_Alcohol";
 
   strategy_msg.sendGrapAlcoholMsg( msg );
 }

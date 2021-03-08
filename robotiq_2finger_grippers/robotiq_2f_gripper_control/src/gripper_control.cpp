@@ -106,7 +106,7 @@ void GripperControl::GrapAlcoholMsgCallback(const std_msgs::String::ConstPtr& ms
   //robotis_->is_ik = false;
 
   
-  if(msg->data=="Gripper_grap")
+  if(msg->data=="Gripper_grap_Alcohol")
   {
     grap = true;
     grap_alc = true;

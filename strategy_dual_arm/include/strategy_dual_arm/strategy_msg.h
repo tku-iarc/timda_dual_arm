@@ -47,18 +47,17 @@ public:
 
   bool init();
   void run();
-    // enum LogLevel
-    // {
-    //     Debug, Info, Warn, Error, Fatal
-    // };
+    enum LogLevel
+    {
+        Debug, Info, Warn, Error, Fatal
+    };
 
     // QStringListModel* loggingModel()
     // {
     //     return &logging_model_;
     // }
     // void log(const LogLevel &level, const std::string &msg, std::string sender = "GUI");
-    //void statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg);
-
+    void statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg);
     void sendIniPoseMsg(std_msgs::String msg);
     void sendSetModeMsg(std_msgs::String msg);
 

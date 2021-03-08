@@ -229,7 +229,7 @@ void MainWindow::on_des_Grap_button_clicked( bool check )
 {
   std_msgs::String msg;
 
-  msg.data ="Gripper_grap";
+  msg.data ="Gripper_grap_Alcohol";
 
   qnode.sendGrapAlcoholMsg( msg );
 }
