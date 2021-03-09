@@ -1,8 +1,7 @@
 #ifndef STRATEGY_MSG_H_
 #define STRATEGY_MSG_H_
 
-// #ifndef strategy_dual_arm_STRATEGY_MSG_H_
-// #define strategy_dual_arm_STRATEGY_MSG_H_
+
 #include <map>
 #include <ros/ros.h>
 #include <string>
@@ -16,6 +15,7 @@
 #include <std_msgs/Int16.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/String.h>
 
 
 #include <std_msgs/String.h>
@@ -56,8 +56,9 @@ public:
     // {
     //     return &logging_model_;
     // }
-    // void log(const LogLevel &level, const std::string &msg, std::string sender = "GUI");
-    void statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg);
+    //void log(const LogLevel &level, const std::string &msg, std::string sender = "Stragtegy");
+    //void statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg);
+    // void statusMsgCallback(robotis_controller_msgs::StatusMsg msg);
     void sendIniPoseMsg(std_msgs::String msg);
     void sendSetModeMsg(std_msgs::String msg);
 

@@ -49,7 +49,7 @@ bool StrategyMsg::init() {
   get_joint_pose_client_ = nm.serviceClient<manipulator_h_base_module_msgs::GetJointPose>("get_joint_pose", 0);
   get_kinematics_pose_client_ = nm.serviceClient<manipulator_h_base_module_msgs::GetKinematicsPose>("get_kinematics_pose", 0);
 
-  status_msg_sub_ = nm.subscribe("status", 10, &StrategyMsg::statusMsgCallback, this);
+  //status_msg_sub_ = nm.subscribe("status", 10, &StrategyMsg::statusMsgCallback, this);
 
   name_ = n_private.param<std::string>("robot_name", "FUCK");
   //self_name_ = QString::fromUtf8(name_.c_str());
@@ -73,13 +73,24 @@ void StrategyMsg::run() {
 }
 
 
-void StrategyMsg::statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg)
-{
-  ROS_INFO((LogLevel) msg->type, msg->status_msg, msg->module_name);
-}
+// void StrategyMsg::statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg)
+// {
+//   //ROS_INFO((LogLevel) msg->type, msg->status_msg, msg->module_name);
+//   //robotis_controller_msgs::StatusMsg status = *msg;
+//   std::cout<<*msg<<std::endl;
+//   //ROS_INFO(status);
 
+// }
 
-// void StrategyeMsg::log( const LogLevel &level, const std::string &msg, std::string sender)
+// void StrategyMsg::statusMsgCallback(robotis_controller_msgs::StatusMsg msg)
+// {
+//   //ROS_INFO((LogLevel) msg->type, msg->status_msg, msg->module_name);
+
+//   ROS_INFO(msg.type, msg.status_msg, msg.module_name);
+
+// }
+
+// void StrategyMsg::log( const LogLevel &level, const std::string &msg, std::string sender)
 // {
 //   logging_model_.insertRows(logging_model_.rowCount(),1);
 //   std::stringstream logging_model_msg;
