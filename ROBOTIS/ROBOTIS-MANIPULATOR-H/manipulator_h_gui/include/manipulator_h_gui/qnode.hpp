@@ -35,6 +35,7 @@
 #ifndef Q_MOC_RUN
 
 #include <ros/ros.h>
+#include <ros/package.h>
 #include <string>
 #include <QThread>
 #include <QStringListModel>
@@ -53,6 +54,8 @@
 
 #include <manipulator_h_base_module_msgs/GetJointPose.h>
 #include <manipulator_h_base_module_msgs/GetKinematicsPose.h>
+#include <yaml-cpp/yaml.h>
+#include <fstream>
 
 #endif
 
@@ -145,6 +148,8 @@ private:
 
     ros::Subscriber     status_msg_sub_;
 
+    std::string pose_log_path;
+    YAML::Emitter pose_log;
 };
 
 }  // namespace manipulator_h_gui
