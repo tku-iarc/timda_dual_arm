@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 """Use to generate arm task and run."""
@@ -25,7 +25,7 @@ from manipulator_h_base_module_msgs.srv import GetJointPose, GetJointPoseRespons
 from manipulator_h_base_module_msgs.srv import CheckRangeLimit, CheckRangeLimitRequest
 from vacuum_cmd_msg.srv import VacuumCmd
 from suction import SuctionTask
-
+from robotiq_2f_gripper import RobotiqGripper
 
 _POS = (0, 0, 0)
 _ORI = (0, 0, 0)
@@ -63,6 +63,7 @@ class ArmTask:
         """Inital object."""
         self.name = _name + '_arm'
         self.suc_name = _name
+        self.grip_name = _name
         self.en_sim = en_sim
         self.suction_angle = 0
         self.init()
@@ -82,10 +83,12 @@ class ArmTask:
         self.occupied = False
         self.state = None
         self.next_state = None
-        if self.en_sim:
+        if self.en_sim==True:
             self.suction = SuctionTask(self.suc_name + '_gazebo')
+            self.gripper = RobotiqGripper(self.grip_name)
         else:
             self.suction = SuctionTask(self.suc_name)
+            self.gripper = RobotiqGripper(self.grip_name)
 
     def __set_pubSub(self):
         print ("[Arm] name space : " + str(self.name)) 
@@ -604,9 +607,21 @@ class ArmTask:
                 elif 'Off' in cmd['suc_cmd']:
                     self.suction.gripper_vacuum_off()
             
-            # if cmd['gripper_cmd'] is not None:
-            #     if 'open' in cmd['gripper_cmd']:
-            #         self.
+            if cmd['gripper_cmd'] is not None:
+                if 'open' in cmd['gripper_cmd']:
+                    self.gripper.gripper_open()
+                elif 'close' in cmd['suc_cmd']:
+                    self.gripper.gripper_close()
+                elif 'grap_alcohol' in cmd['gripper_cmd']:
+                    self.gripper.gripper_setting(255, 150)
+                    self.gripper.gripper_pos(150)
+                elif 'squeeze' in cmd['gripper_cmd']:
+                    self.gripper.gripper_setting(255, 150)
+                    self.gripper.gripper_pos(150)
+                elif 'grap_rag' in cmd['gripper_cmd']:
+                    self.gripper.gripper_setting(255, 150)
+                    self.gripper.gripper_pos(100)
+
 
         if not self.is_busy and not self.occupied:
             if self.__cmd_queue.empty() and self.__cmd_queue_2nd.empty():
@@ -616,36 +631,36 @@ class ArmTask:
                 self.status = Status.occupied
         elif not self.status == Status.grasping:
             self.status = Status.busy
-if __name__ == '__main__':
-    rospy.init_node('test_arm_task')
-    print("Test arm task script")
+# if __name__ == '__main__':
+#     rospy.init_node('test_arm_task')
+#     print("Test arm task script")
     
-    a = ArmTask('right_arm')
-    rospy.sleep(0.3)
+#     a = ArmTask('right_arm',en_sim = True)
+#     #rospy.sleep(0.3)
 
-    a.set_speed(100)
-    a.jointMove(0, (0, -1, 0, 1, 0, 0, 0))
-    a.set_speed(20)
-    a.wait_busy()
+#     a.set_speed(100)
+#     a.jointMove(0, (0, -1, 0, 1, 0, 0, 0))
+#     a.set_speed(20)
+#     a.wait_busy()
     
-    a.ikMove('p2p', (0, -0.3, -0.9), (0, 0, 0), 30) 
-    a.set_speed(100)
-    a.wait_busy()
+#     a.ikMove('p2p', (0, -0.3, -0.9), (0, 0, 0), 30) 
+#     a.set_speed(100)
+#     a.wait_busy()
     
-    a.noa_move_suction('p2p', -45, n=0, s=0, a=-0.1)
-    a.wait_busy()
+#     a.noa_move_suction('p2p', -45, n=0, s=0, a=-0.1)
+#     a.wait_busy()
         
-    a.singleJointMove(0,-0.2)
-    a.wait_busy()
+#     a.singleJointMove(0,-0.2)
+#     a.wait_busy()
         
-    a.jointMove(0, (0, -1, 0, 1, 0, 0, 0))
-    a.wait_busy()
+#     a.jointMove(0, (0, -1, 0, 1, 0, 0, 0))
+#     a.wait_busy()
         
-    a.singleJointMove(2,0.5)
-    a.wait_busy()
+#     a.singleJointMove(2,0.5)
+#     a.wait_busy()
         
-    a.relative_move_pose('p2p', (0, 0.1, 0) )
-    a.wait_busy()
+#     a.relative_move_pose('p2p', (0, 0.1, 0) )
+#     a.wait_busy()
     
-    a.back_home()
-    a.wait_busy()
+#     a.back_home()
+#     a.wait_busy()

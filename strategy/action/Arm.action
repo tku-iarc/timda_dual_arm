@@ -1,0 +1,9 @@
+#goal definition
+string cmd
+---
+#result definition
+bool finish
+---
+#feedback
+string right_status
+string left_status

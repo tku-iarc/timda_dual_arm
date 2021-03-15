@@ -1,11 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
 """Use to generate dual_arm task and control both arms."""
 
 import rospy
 import tf
-import queue
+#import queue
+import Queue as queue
 import threading
 import copy
 # import object_distribtion
@@ -18,6 +19,7 @@ import numpy as np
 
 from arm_control import ArmTask, SuctionTask, Command, Status
 from std_msgs.msg import String, Float64, Bool
+
 
 class DualArmTask:
     """"""
@@ -57,7 +59,7 @@ class DualArmTask:
             if self.stop_event.is_set():
                 return
             self.right_arm.process()
-            if self.right_arm.status == Status.grasping and self.right_arm.suction.is_grip:
+            if self.right_arm.status == Status.grasping and self.right_arm.suction.is_grip and self.right_arm.gripper.is_grip:
                 self.right_arm.clear_cmd()
                 rospy.sleep(0.1)
             if self.right_arm.cmd_queue_empty:
@@ -75,7 +77,7 @@ class DualArmTask:
             if self.stop_event.is_set():
                 return
             self.left_arm.process()
-            if self.left_arm.status == Status.grasping and self.left_arm.suction.is_grip:
+            if self.left_arm.status == Status.grasping and self.left_arm.suction.is_grip and self.left_arm.gripper.is_grip:
                 self.left_arm.clear_cmd()
                 rospy.sleep(0.1)
             if self.left_arm.cmd_queue_empty:
