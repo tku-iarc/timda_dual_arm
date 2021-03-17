@@ -12,6 +12,7 @@ add_compile_options(-std=c++11)
 ################################################################################
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  roslib
   robotis_controller_msgs
   manipulator_h_base_module_msgs
   #qt_build
@@ -49,6 +50,23 @@ if(NOT EXISTS ${${PROJECT_NAME}_INCLUDE_DIRECTORIES})
   file(MAKE_DIRECTORY ${${PROJECT_NAME}_INCLUDE_DIRECTORIES})
 endif()
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+find_path(YAML_CPP_INCLUDE_DIR
+  NAMES yaml_cpp.h
+  PATHS ${YAML_CPP_INCLUDE_DIRS}
+)
+find_library(YAML_CPP_LIBRARY
+  NAMES YAML_CPP
+  PATHS ${YAML_CPP_LIBRARY_DIRS}
+)
+link_directories(${YAML_CPP_LIBRARY_DIRS})
+
+if(NOT ${YAML_CPP_VERSION} VERSION_LESS "0.5")
+add_definitions(-DHAVE_NEW_YAMLCPP)
+endif(NOT ${YAML_CPP_VERSION} VERSION_LESS "0.5")
+
+
 ################################################################################
 # Setup for python modules and scripts
 ################################################################################
@@ -66,7 +84,7 @@ endif()
 ################################################################################
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp robotis_controller_msgs manipulator_h_base_module_msgs cmake_modules eigen_conversions
+  CATKIN_DEPENDS roscpp roslib robotis_controller_msgs manipulator_h_base_module_msgs cmake_modules eigen_conversions
   DEPENDS EIGEN3
 )
 
@@ -87,6 +105,7 @@ include_directories(
   ${manipulator_h_gui_INCLUDE_DIRECTORIES}
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
+  ${YAML_CPP_INCLUDE_DIRS}
 )
 
 ################################################################################
@@ -108,7 +127,7 @@ include_directories(
 add_executable(manipulator_h_gui ${manipulator_h_gui_SRCS} ${manipulator_h_gui_MOCS} ${manipulator_h_gui_UIS_H} ${manipulator_h_gui_RCC})
 add_dependencies(manipulator_h_gui ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 # target_link_libraries(manipulator_h_gui ${catkin_LIBRARIES} ${QT_LIBRARIES} ${Eigen3_LIBRARIES})
-target_link_libraries(manipulator_h_gui Qt5::Widgets ${catkin_LIBRARIES} ${Eigen3_LIBRARIES})
+target_link_libraries(manipulator_h_gui Qt5::Widgets ${catkin_LIBRARIES} ${Eigen3_LIBRARIES} ${YAML_CPP_LIBRARIES})
 ################################################################################
 # Install
 ################################################################################
