@@ -2,8 +2,8 @@
 
 void slide_callback(const manipulator_h_base_module_msgs::SlideCommand::ConstPtr& msg)
 {
-    goal_pos = (double)100000.0*(msg->pos+0.8);
-    // goal_pos = -1*(double)100000.0*(msg->pos);
+    //goal_pos = (double)100000.0*(msg->pos+0.8);
+    goal_pos = -1*(double)100000.0*(msg->pos);
 
     cmd_arr[4] = goal_pos>>16;
     cmd_arr[5] = goal_pos;

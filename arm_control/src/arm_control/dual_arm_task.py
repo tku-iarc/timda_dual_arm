@@ -17,7 +17,7 @@ from numpy import multiply
 from math import acos, cos, asin, sin, degrees
 import numpy as np
 
-from arm_control import ArmTask, SuctionTask, Command, Status
+from arm_control import ArmTask, SuctionTask, Command, Status ,RobotiqGripper
 from std_msgs.msg import String, Float64, Bool
 
 

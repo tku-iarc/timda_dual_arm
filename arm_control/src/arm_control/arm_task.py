@@ -51,6 +51,7 @@ class Command(dict):
         self['phi']    = None
         self['noa']      = None
         self['suc_cmd']= None
+        self['gripper_cmd']= None
         self['jpos']   = None
         self['speed']  = None
         self['state']  = None
@@ -608,18 +609,23 @@ class ArmTask:
                     self.suction.gripper_vacuum_off()
             
             if cmd['gripper_cmd'] is not None:
-                if 'open' in cmd['gripper_cmd']:
+                if 'active' in cmd['gripper_cmd']:
+                    self.gripper.gripper_setting()
+                elif 'reset' in cmd['gripper_cmd']:
+                    self.gripper.gripper_reset()
+                elif 'open' in cmd['gripper_cmd']:
                     self.gripper.gripper_open()
-                elif 'close' in cmd['suc_cmd']:
+                elif 'close' in cmd['gripper_cmd']:
                     self.gripper.gripper_close()
                 elif 'grap_alcohol' in cmd['gripper_cmd']:
-                    self.gripper.gripper_setting(255, 150)
-                    self.gripper.gripper_pos(150)
+                    #self.gripper.gripper_setting(255, 150)
+                    #print('-------------gggg------------')
+                    self.gripper.gripper_pos(20)
                 elif 'squeeze' in cmd['gripper_cmd']:
-                    self.gripper.gripper_setting(255, 150)
-                    self.gripper.gripper_pos(150)
+                    #self.gripper.gripper_setting(255, 150)
+                    self.gripper.gripper_pos(60)
                 elif 'grap_rag' in cmd['gripper_cmd']:
-                    self.gripper.gripper_setting(255, 150)
+                    #self.gripper.gripper_setting(255, 150)
                     self.gripper.gripper_pos(100)
 
 

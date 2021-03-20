@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 from math import radians, degrees, pi
-from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_input  as inputMsg
-from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output as outputMsg
+from robotiq_2f_gripper_control.msg import Robotiq2FGripper_robot_input  as inputMsg
+from robotiq_2f_gripper_control.msg import Robotiq2FGripper_robot_output as outputMsg
 from std_msgs.msg import Bool, Float64
 from std_srvs.srv import Empty
 
@@ -27,24 +27,24 @@ class RobotiqGripper:
         if 'gazebo' in self.name:
             if 'right' in self.name:
                 self.gripper_cmd_pub = rospy.Publisher(
-                    'mobile_dual_arm/right_arm/Robotiq2FGripperRobotOutput',
+                    'right_arm/Robotiq2FGripperRobotOutput',
                     outputMsg,
                     queue_size=1
                 )
                 self.grip_status_sub = rospy.Subscriber(
-                    'mobile_dual_arm/right_arm/Robotiq2FGripperRobotInput',
+                    'right_arm/Robotiq2FGripperRobotInput',
                     inputMsg,
                     self.grip_status_callback,
                     queue_size=1
                 )
             elif 'left' in self.name :
                 self.gripper_cmd_pub = rospy.Publisher(
-                    'mobile_dual_arm/left_arm/Robotiq2FGripperRobotOutput',
+                    'left_arm/Robotiq2FGripperRobotOutput',
                     outputMsg,
                     queue_size=1
                 )
                 self.grip_status_sub = rospy.Subscriber(
-                    'mobile_dual_arm/left_arm/Robotiq2FGripperRobotInput',
+                    'left_arm/Robotiq2FGripperRobotInput',
                     inputMsg,
                     self.grip_status_callback,
                     queue_size=1
@@ -52,37 +52,48 @@ class RobotiqGripper:
         else:
             if 'right' in self.name:
                 self.gripper_cmd_pub = rospy.Publisher(
-                    'mobile_dual_arm/right_arm/Robotiq2FGripperRobotOutput',
+                    'right_arm/Robotiq2FGripperRobotOutput',
                     outputMsg,
                     queue_size=1
                 )
                 self.grip_status_sub = rospy.Subscriber(
-                    'mobile_dual_arm/right_arm/Robotiq2FGripperRobotInput',
+                    'right_arm/Robotiq2FGripperRobotInput',
                     inputMsg,
                     self.grip_status_callback,
                     queue_size=1
                 )
             elif 'left' in self.name :
                 self.gripper_cmd_pub = rospy.Publisher(
-                    'mobile_dual_arm/left_arm/Robotiq2FGripperRobotOutput',
+                    'left_arm/Robotiq2FGripperRobotOutput',
                     outputMsg,
                     queue_size=1
                 )
-                self.grip_status_sub = rospy.Subscriber(
-                    'mobile_dual_arm/left_arm/Robotiq2FGripperRobotInput',
-                    inputMsg,
-                    self.grip_status_callback,
-                    queue_size=1
-                )
+                # self.grip_status_sub = rospy.Subscriber(
+                #     'left_arm/Robotiq2FGripperRobotInput',
+                #     inputMsg,
+                #     self.grip_status_callback,
+                #     queue_size=1
+                # )
 
     def grip_status_callback(self, msg):
         self.is_grip = msg.gOBJ
         self.curr_pos = msg.gPO
 
-    def gripper_open(self):
+    def gripper_reset(self):
         cmd = outputMsg()
         cmd.rACT = 0
-        cmd.rGTO = 0
+        cmd.rGTO = 1
+        cmd.rATR = 0
+        cmd.rPR  = 0
+        cmd.rSP  = 255
+        cmd.rFR  = 150
+        self.gripper_cmd_pub.publish(cmd)
+        rospy.sleep(0.5)
+
+    def gripper_open(self):
+        cmd = outputMsg()
+        cmd.rACT = 1
+        cmd.rGTO = 1
         cmd.rATR = 0 
         cmd.rPR  = 0
         cmd.rSP  = int(self.speed)
@@ -92,8 +103,8 @@ class RobotiqGripper:
 
     def gripper_close(self):
         cmd = outputMsg()
-        cmd.rACT = 0
-        cmd.rGTO = 0
+        cmd.rACT = 1
+        cmd.rGTO = 1
         cmd.rATR = 0 
         cmd.rPR  = 255
         cmd.rSP  = int(self.speed)
@@ -105,8 +116,8 @@ class RobotiqGripper:
         self.speed = self.speed if speed == -1 else speed
         self.force = self.force if force == -1 else force
         cmd = outputMsg()
-        cmd.rACT = 0
-        cmd.rGTO = 0
+        cmd.rACT = 1
+        cmd.rGTO = 1
         cmd.rATR = 0 
         cmd.rPR  = self.curr_pos
         cmd.rSP  = int(self.speed)
@@ -115,9 +126,10 @@ class RobotiqGripper:
         
 
     def gripper_pos(self, pos):
+        #print('===================get in pos====================')
         cmd = outputMsg()
-        cmd.rACT = 0
-        cmd.rGTO = 0
+        cmd.rACT = 1
+        cmd.rGTO = 1
         cmd.rATR = 0 
         cmd.rPR  = int(pos)
         cmd.rSP  = int(self.speed)
@@ -139,6 +151,9 @@ if __name__ == '__main__':
 
     while not rospy.is_shutdown():
         for gripper in [right_gripper, left_gripper]:
+            gripper.gripper_active()
+            rospy.sleep(2)
+
             gripper.gripper_open()
             rospy.sleep(2)
 

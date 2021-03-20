@@ -3,7 +3,8 @@
 <launch>
     <arg name="en_sim" default="false"  />
     <arg name="side"   default="left" />
-    
+    <!-- <arg name="comport"   default="/dev/ttyUSB0" /> -->
+
     <group ns="$(arg side)_arm">
 	  <node name="manipulator_h_manager" pkg="manipulator_h_manager" type="manipulator_h_manager" output="screen">
               <param name="en_sim"                   value="$(arg en_sim)" />
@@ -23,5 +24,10 @@
                 <param name="side"               value="$(arg side)" />
 		<param name="en_sim"                   value="$(arg en_sim)" />
           </node>
+
+          <!-- <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="$(arg side)_Gripper" output="screen" >
+            <param name="comport" value="$(arg comport)"/>
+          </node> -->
+
     </group>
 </launch>
