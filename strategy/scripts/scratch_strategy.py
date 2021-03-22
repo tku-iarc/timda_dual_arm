@@ -75,7 +75,7 @@ class ObjInfo(dict):
     def __init__(self):
         self['id']      = 0
         self['side_id'] = 'front'         # 'front', 'back', 'side'
-        self['name']    = 'plum_riceball' # 'plum_riceball', 'salmon_riceball', 'sandwich', 'burger', 'drink', 'lunch_box'
+        self['name']    = 'scratcher' # 'plum_riceball', 'salmon_riceball', 'sandwich', 'burger', 'drink', 'lunch_box'
         self['state']   = 'new'           # 'new', 'old', 'expired'
         self['pos']     = None
         self['euler']   = None
