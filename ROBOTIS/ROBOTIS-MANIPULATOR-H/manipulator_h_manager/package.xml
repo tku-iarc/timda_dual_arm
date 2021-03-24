@@ -18,4 +18,5 @@
   <depend>roscpp</depend>
   <depend>robotis_controller</depend>
   <depend>manipulator_h_base_module</depend>
+  <depend>robotiq_2f_gripper_control</depend>
 </package>

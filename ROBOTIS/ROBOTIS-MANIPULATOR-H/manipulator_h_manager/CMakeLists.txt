@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   robotis_controller
   manipulator_h_base_module
   linear_motion
+  robotiq_2f_gripper_control
 )
 
 ################################################################################

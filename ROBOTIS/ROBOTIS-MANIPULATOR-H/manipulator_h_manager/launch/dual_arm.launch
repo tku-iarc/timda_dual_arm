@@ -2,16 +2,29 @@
    
 <launch>
     <arg name="en_sim" default="false"/>
+    <arg name="comport"   default="/dev/ttyUSB0" />
     <include file="$(find manipulator_h_manager)/launch/single_arm.launch">
         <arg name="side"   value="right"/>
         <arg name="en_sim" value="$(arg en_sim)"/>
+        <!-- <arg name="comport" value="/dev/ttyUSB0" /> -->
     </include>
     <include file="$(find manipulator_h_manager)/launch/single_arm.launch">
         <arg name="side"   value="left"/>
         <arg name="en_sim" value="$(arg en_sim)"/>
+        <!-- <arg name="comport" value="/dev/ttyUSB2" /> -->
     </include>
-        <include file="$(find robotiq_2f_gripper_control)/launch/robotiq_action_server.launch">
-    </include>
+
+    <group ns="left_arm">
+        <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
+            <param name="comport" value="$(arg comport)"/>
+        </node>
+    </group>
+    <!-- <group ns="right_arm">
+        <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
+            <param name="comport" value="$(arg comport)"/>
+        </node>
+    </group> -->
+
     <include file="$(find mobile_dual_arm)/launch/mobile_dual_arm.launch" if="$(arg en_sim)">
         <arg name="paused" default="true"/>
 	<arg name="use_sim_time" default="true"/>

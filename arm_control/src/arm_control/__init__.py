@@ -2,4 +2,5 @@
 # from arm_control import arm_task, suction, dual_arm_task
 from arm_control.arm_task import ArmTask, Command, Status
 from arm_control.suction import SuctionTask
+from arm_control.robotiq_2f_gripper import RobotiqGripper
 from arm_control.dual_arm_task import DualArmTask

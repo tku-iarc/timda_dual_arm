@@ -32,5 +32,5 @@
   <depend>yaml-cpp</depend>
   <depend>linear_motion</depend>
   <depend>actionlib</depend>
-  <depend>robotiq_2f_gripper_msgs</depend>
+  <!--<depend>robotiq_2f_gripper_msgs</depend>-->
 </package>
