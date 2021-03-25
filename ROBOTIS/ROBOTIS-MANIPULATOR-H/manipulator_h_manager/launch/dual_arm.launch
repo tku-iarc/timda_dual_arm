@@ -27,9 +27,12 @@
 
     <include file="$(find mobile_dual_arm)/launch/mobile_dual_arm.launch" if="$(arg en_sim)">
         <arg name="paused" default="true"/>
-	<arg name="use_sim_time" default="true"/>
-	<arg name="gui" default="true"/>
-	<arg name="headless" default="false"/>
-	<arg name="debug" default="false"/>
+	    <arg name="use_sim_time" default="true"/>
+	    <arg name="gui" default="true"/>
+	    <arg name="headless" default="false"/>
+	    <arg name="debug" default="false"/>
     </include>
+    <node pkg="joy" type="joy_node" name="dual_arm_joy" output="screen">
+        <param name="joy_node/dev" value="/dev/input/js0"/>
+    </node>
 </launch>

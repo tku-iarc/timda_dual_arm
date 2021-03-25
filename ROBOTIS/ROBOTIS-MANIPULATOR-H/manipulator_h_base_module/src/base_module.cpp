@@ -75,7 +75,7 @@ void BaseModule::initialize(const int control_cycle_msec, robotis_framework::Rob
   queue_thread_ = boost::thread(boost::bind(&BaseModule::queueThread, this));
 }
 
-void BaseModule::parseIniPoseData(const std::string &path)
+void BaseModule::parsePoseData(const std::string &path)
 {
   YAML::Node doc;
   try
@@ -129,8 +129,8 @@ void BaseModule::queueThread()
                                                 &BaseModule::waitMsgCallback, this);
   ros::Subscriber clear_cmd_sub = ros_node.subscribe("clear_cmd",5,
                                                      &BaseModule::clearCmdCallback, this);
-  ros::Subscriber ini_pose_msg_sub = ros_node.subscribe("ini_pose_msg", 5,
-                                                        &BaseModule::initPoseMsgCallback, this);
+  ros::Subscriber specific_pose_msg_sub = ros_node.subscribe("specific_pose_msg", 5,
+                                                        &BaseModule::specificPoseMsgCallback, this);
   ros::Subscriber set_mode_msg_sub = ros_node.subscribe("set_mode_msg", 5,
                                                         &BaseModule::setModeMsgCallback, this);
 
@@ -139,7 +139,9 @@ void BaseModule::queueThread()
   ros::Subscriber kinematics_pose_msg_sub = ros_node.subscribe("kinematics_pose_msg", 5,
                                                                &BaseModule::kinematicsPoseMsgCallback, this);
   ros::Subscriber p2p_pose_msg_sub = ros_node.subscribe("p2p_pose_msg", 5,
-                                                               &BaseModule::p2pPoseMsgCallback, this);
+                                                         &BaseModule::p2pPoseMsgCallback, this);
+  ros::Subscriber vector_move_msg_sub = ros_node.subscribe("vector_move_msg", 5,
+                                                           &BaseModule::vectorMoveMsgCallback, this);
 
   ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("get_joint_pose",
                                                                        &BaseModule::getJointPoseCallback, this);
@@ -177,18 +179,18 @@ void BaseModule::clearCmdCallback(const std_msgs::Bool::ConstPtr& msg)
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory");
   }
 }
-void BaseModule::initPoseMsgCallback(const std_msgs::String::ConstPtr& msg)
+void BaseModule::specificPoseMsgCallback(const std_msgs::String::ConstPtr& msg)
 {
   if (enable_ == false)
     return;
 
   if (robotis_->is_moving_ == false)
   {
-    if (msg->data == "ini_pose")
+    if (msg->data != "")
     {
       // parse initial pose
-      std::string ini_pose_path = ros::package::getPath("manipulator_h_base_module") + "/config/ini_pose.yaml";
-      parseIniPoseData(ini_pose_path);
+      std::string pose_path = ros::package::getPath("manipulator_h_base_module") + "/config/" + msg->data + "yaml";
+      parsePoseData(pose_path);
 
       tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateInitPoseTrajProcess, this));
       delete tra_gene_thread_;
@@ -212,6 +214,26 @@ void BaseModule::setModeMsgCallback(const std_msgs::String::ConstPtr& msg)
     str_msg.data = "base_module";
 
     set_ctrl_module_pub_.publish(str_msg);
+    while(enable_ == false)
+    {
+      usleep(1000);
+    }
+    if (robotis_->is_moving_ == false)
+    {
+      // parse initial pose
+      std::string ini_pose_path = ros::package::getPath("manipulator_h_base_module") + "/config/ini_pose.yaml";
+      parsePoseData(ini_pose_path);
+
+      tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateInitPoseTrajProcess, this));
+      delete tra_gene_thread_;
+    }
+    else
+    {
+      ROS_INFO("previous task is alive");
+    }
+  
+  return;
+
   }
   return;
 }
@@ -395,6 +417,45 @@ void BaseModule::p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPos
     return;
   }
   robotis_->is_ik = false;
+  return;
+}
+void BaseModule::vectorMoveMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg)
+{
+  bool limit_success = false;
+  bool ik_success = false;
+  Eigen::Matrix3d target_rotation;
+  Eigen::Vector3d target_position;
+  Eigen::VectorXf moving_vector(8);
+  Eigen::Quaterniond curr_quaternion = robotis_framework::convertRotationToQuaternion(manipulator_->manipulator_link_data_[END_LINK]->orientation_);
+
+  for(int i = 0; i < msg->moving_vector.size(); i++)
+  {
+    if(i > 7)
+    {
+      ROS_INFO("moving_vector Size Error!!!");
+      return;
+    }
+    moving_vector[i] = (fabs(msg->moving_vector[i]) > 0.001) ? (msg->moving_vector[i] < 0) ? -0.001 : 0.001 : msg->moving_vector[i];
+  }
+  target_position << manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(0, 0) + moving_vector[0],
+                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(1, 0) + moving_vector[1],
+                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(2, 0) + moving_vector[2];
+
+  Eigen::Quaterniond target_quaterniond(curr_quaternion.w() + moving_vector[3],
+                                        curr_quaternion.x() + moving_vector[4],
+                                        curr_quaternion.y() + moving_vector[5],
+                                        curr_quaternion.z() + moving_vector[6]);
+  target_quaterniond = target_quaterniond.normalized();
+  double target_phi = manipulator_->manipulator_link_data_[END_LINK]->phi_ + moving_vector[7]*M_PI/2;
+  target_rotation = robotis_framework::convertQuaternionToRotation(target_quaterniond);
+
+  slide_->goal_slide_pos = 0;
+  manipulator_->manipulator_link_data_[0]->mov_speed_ = 800;
+  limit_success = manipulator_->limit_check(target_position, target_rotation);
+  if(limit_success)
+    ik_success = manipulator_->inverseKinematics(END_LINK, target_position, target_rotation, target_phi, slide_->goal_slide_pos, false);
+  if (ik_success)
+    this->vectorMove();
   return;
 }
 // =======================================================================================================================
@@ -609,6 +670,22 @@ void BaseModule::generateTaskTrajProcess()
     robotis_->cnt_ = 0;
   }
 
+}
+
+void BaseModule::vectorMove()
+{
+  if (enable_ == false)
+    return;
+
+  robotis_->all_time_steps_ = 1;
+  robotis_->calc_joint_tra_.resize(robotis_->all_time_steps_, MAX_JOINT_ID + 1);
+  for (int id = 1; id <= MAX_JOINT_ID; id++)
+    robotis_->calc_joint_tra_(0, id) = manipulator_->manipulator_link_data_[id]->joint_angle_;
+    
+  slide_->goal_slide_pos = 0;
+  robotis_->calc_slide_tra_(0, 0) = 0;
+  robotis_->cnt_ = 0;
+  robotis_->is_moving_ = true;
 }
 
 void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,

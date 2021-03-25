@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1100</width>
-    <height>600</height>
+    <width>1000</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -97,14 +97,16 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>500</width>
-     <height>560</height>
+     <width>300</width>
+     <height>200</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
-     <width>524287</width>
-     <height>10000</height>
+     <!-- <width>524287</width>
+     <height>10000</height> -->
+     <width>1000</width>
+     <height>600</height>
     </size>
    </property>
    <property name="allowedAreas">
@@ -128,8 +130,9 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>16777215</width>
-         <height>600</height>
+         <!-- <width>16777215</width> -->
+         <width>650</width>
+         <height>560</height>
         </size>
        </property>
        <property name="frameShape">
@@ -157,7 +160,7 @@
              <item>
                <widget class="QLabel" name="speed">
                <property name="text">
-                 <string>speed [%]</string>
+                 <string>Speed [%]</string>
                </property>
                </widget>
              </item>
@@ -211,7 +214,7 @@
              <item>
               <widget class="QLabel" name="pos_y">
                <property name="text">
-                <string>position y [m]</string>
+                <string>Position y [m]</string>
                </property>
               </widget>
              </item>
@@ -238,7 +241,7 @@
              <item>
               <widget class="QLabel" name="pos_z">
                <property name="text">
-                <string>position z [m]</string>
+                <string>Position z [m]</string>
                </property>
               </widget>
              </item>
@@ -265,7 +268,7 @@
              <item>
               <widget class="QLabel" name="ori_roll">
                <property name="text">
-                <string>orientation roll [deg]</string>
+                <string>Orien roll [deg]</string>
                </property>
               </widget>
              </item>
@@ -292,7 +295,7 @@
              <item>
               <widget class="QLabel" name="ori_pitch">
                <property name="text">
-                <string>orientation pitch [deg]</string>
+                <string>Orien pitch [deg]</string>
                </property>
               </widget>
              </item>
@@ -319,7 +322,7 @@
              <item>
               <widget class="QLabel" name="ori_yaw">
                <property name="text">
-                <string>orientation yaw [deg]</string>
+                <string>Orien yaw [deg]</string>
                </property>
               </widget>
              </item>
@@ -346,7 +349,7 @@
              <item>
               <widget class="QLabel" name="ori_phi">
                <property name="text">
-                <string>orientation phi [deg]</string>
+                <string>Orien phi [deg]</string>
                </property>
               </widget>
              </item>
@@ -379,13 +382,6 @@
             <widget class="QPushButton" name="des_p2p_button">
              <property name="text">
               <string>Send P2P Pos.</string>
-             </property>
-            </widget>
-           </item>
-          <item>
-           <widget class="QPushButton" name="des_Grap_button">
-            <property name="text">
-              <string>Send Grap Alcohol.</string>
              </property>
             </widget>
            </item>
@@ -611,13 +607,6 @@
               </property>
             </widget>
             </item>
-          <item>
-           <widget class="QPushButton" name="des_Release_button">
-            <property name="text">
-              <string>Send Release Gripper.</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </widget>
         </item>
@@ -626,6 +615,28 @@
      </item>
      <!-- ===================================================================================== -->
      <item row="1" column="0">
+     <widget class="QFrame" name="frame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+      <property name="maximumSize">
+       <size>
+        <!-- <width>16777215</width> -->
+        <width>650</width>
+        <height>160</height>
+        </size>
+       </property>
+     <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0" rowspan="2">
       <widget class="QGroupBox" name="relative_movement">
        <property name="title">
         <string>Relative Movement</string>
@@ -895,15 +906,103 @@
       </widget>
      </item>
      <!-- =============================================================================================== -->
+     <item row="0" column="1" rowspan="2">
+      <widget class="QGroupBox" name="tool_control">
+       <property name="title">
+        <string>Tool Control</string>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLabel" name="for_">
+            <property name="text">
+             <string>        Just for</string>
+            </property>
+            <property name="alignment">
+             <enum>Qt::AlignCenter</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="des_Grap_button">
+            <property name="text">
+             <string>Grap</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="Gripper">
+            <property name="text">
+             <string>Gripper</string>
+            </property>
+            <property name="alignment">
+             <enum>Qt::AlignCenter</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="des_Release_button">
+            <property name="text">
+             <string>Release</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLabel" name="symmetry">
+            <property name="text">
+             <string>Symmetry</string>
+            </property>
+            <property name="alignment">
+             <enum>Qt::AlignCenter</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="suc_on_button">
+            <property name="text">
+             <string>On</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="Sucker">
+            <property name="text">
+             <string>Sucker</string>
+            </property>
+            <property name="alignment">
+             <enum>Qt::AlignCenter</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="suc_off_button">
+            <property name="text">
+             <string>Off</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     </layout>
+     </widget>
+     </item>
      <item row="2" column="0">
       <widget class="QFrame" name="frame_3">
        <property name="enabled">
         <bool>true</bool>
        </property>
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>50</horstretch>
-         <verstretch>50</verstretch>
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="frameShape">
@@ -921,9 +1020,16 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="des_initial_button">
+         <widget class="QPushButton" name="home_pose_button">
           <property name="text">
            <string>Back Home</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="joy_calib_button">
+          <property name="text">
+           <string>Joy Calib</string>
           </property>
          </widget>
         </item>

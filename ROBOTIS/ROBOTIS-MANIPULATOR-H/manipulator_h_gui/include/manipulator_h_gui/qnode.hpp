@@ -99,7 +99,7 @@ public:
     void log(const LogLevel &level, const std::string &msg, std::string sender = "GUI");
     void statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg);
 
-    void sendIniPoseMsg(std_msgs::String msg);
+    void sendSpecificPoseMsg(std_msgs::String msg);
     void sendSetModeMsg(std_msgs::String msg);
 
     void sendJointPoseMsg(manipulator_h_base_module_msgs::JointPose msg);
@@ -133,7 +133,7 @@ private:
     ros::Publisher      chatter_publisher_;
     QStringListModel    logging_model_;
 
-    ros::Publisher      ini_pose_msg_pub_;
+    ros::Publisher      specific_pose_msg_pub_;
     ros::Publisher      set_mode_msg_pub_;
 
     ros::Publisher      joint_pose_msg_pub_;

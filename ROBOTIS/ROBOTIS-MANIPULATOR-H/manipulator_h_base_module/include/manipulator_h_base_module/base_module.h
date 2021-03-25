@@ -45,6 +45,7 @@
 #include "manipulator_h_base_module_msgs/JointPose.h"
 #include "manipulator_h_base_module_msgs/KinematicsPose.h"
 #include "manipulator_h_base_module_msgs/P2PPose.h"   //new
+#include "manipulator_h_base_module_msgs/VectorMove.h"
 
 #include "manipulator_h_base_module_msgs/GetJointPose.h"
 #include "manipulator_h_base_module_msgs/GetKinematicsPose.h"
@@ -104,7 +105,7 @@ private:
 
   void queueThread();
 
-  void parseIniPoseData(const std::string &path);
+  void parsePoseData(const std::string &path);
   void publishStatusMsg(unsigned int type, std::string msg);
 
 public:
@@ -112,7 +113,7 @@ public:
   virtual ~BaseModule();
 
   /* ROS Topic Callback Functions */
-  void initPoseMsgCallback(const std_msgs::String::ConstPtr& msg);
+  void specificPoseMsgCallback(const std_msgs::String::ConstPtr& msg);
   void setModeMsgCallback(const std_msgs::String::ConstPtr& msg);
   void waitMsgCallback(const std_msgs::Bool::ConstPtr& msg);
   void stopMsgCallback(const std_msgs::Bool::ConstPtr& msg);
@@ -120,6 +121,7 @@ public:
   void jointPoseMsgCallback(const manipulator_h_base_module_msgs::JointPose::ConstPtr& msg);
   void kinematicsPoseMsgCallback(const manipulator_h_base_module_msgs::KinematicsPose::ConstPtr& msg);
   void p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg);   //new
+  void vectorMoveMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg);
 
 
   bool getJointPoseCallback(manipulator_h_base_module_msgs::GetJointPose::Request &req,
@@ -138,6 +140,7 @@ public:
 
   /* ROS Framework Functions */
   void initialize(const int control_cycle_msec, robotis_framework::Robot *robot);
+  void vectorMove(void);
   void process(std::map<std::string, robotis_framework::Dynamixel *> dxls, std::map<std::string, double> sensors);
 
   void stop();

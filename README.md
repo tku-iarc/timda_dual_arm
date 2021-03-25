@@ -13,6 +13,8 @@ $ sudo apt-get install ros-<distro>-joint-state-controller
 $ sudo apt-get install ros-<distro>-joint-state-publisher
 $ sudo apt-get install ros-<distro>-aruco-detect
 $ sudo apt-get install ros-<distro>-visp-hand2eye-calibration
+$ sudo apt-get install ros-<distro>-soem
+$ sudo apt-get install ros-<distro>-socketcan-interface
 ```
 ros-melodic-position-controllers ros-melodic-velocity-controllers ros-melodic-effort-controllers ros-melodic-joint-state-controller ros-melodic-joint-state-publisher
 ### Install modbus library `libmodbus`:

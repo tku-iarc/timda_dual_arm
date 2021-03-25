@@ -65,7 +65,7 @@ bool QNode::init() {
   ros::NodeHandle n_private("~");
 
   // Add your ros communications here.
-  ini_pose_msg_pub_ = n.advertise<std_msgs::String>("ini_pose_msg", 0);
+  specific_pose_msg_pub_ = n.advertise<std_msgs::String>("specific_pose_msg", 0);
   set_mode_msg_pub_ = n.advertise<std_msgs::String>("set_mode_msg", 0);
 
   joint_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::JointPose>("joint_pose_msg", 0);
@@ -185,9 +185,9 @@ void QNode::sendReleasePoseMsg( std_msgs::String msg )
   log( Info , "Send Release Pose Msg" );
 }
 //=============================================================
-void QNode::sendIniPoseMsg( std_msgs::String msg )
+void QNode::sendSpecificPoseMsg( std_msgs::String msg )
 {
-  ini_pose_msg_pub_.publish ( msg );
+  specific_pose_msg_pub_.publish ( msg );
 
   log( Info , "Go to Manipulator Initial Pose" );
 }

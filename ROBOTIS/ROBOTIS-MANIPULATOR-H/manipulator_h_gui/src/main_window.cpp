@@ -248,7 +248,16 @@ void MainWindow::on_ini_pose_button_clicked( bool check )
 
   msg.data ="ini_pose";
 
-  qnode.sendIniPoseMsg( msg );
+  qnode.sendSpecificPoseMsg( msg );
+}
+
+void MainWindow::on_home_pose_button_clicked( bool check )
+{
+  std_msgs::String msg;
+
+  msg.data ="home_pose";
+
+  qnode.sendSpecificPoseMsg( msg );
 }
 
 void MainWindow::on_set_mode_button_clicked( bool check )
