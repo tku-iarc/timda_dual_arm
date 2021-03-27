@@ -50,8 +50,6 @@
 #include <manipulator_h_base_module_msgs/JointPose.h>
 #include <manipulator_h_base_module_msgs/KinematicsPose.h>
 #include <manipulator_h_base_module_msgs/P2PPose.h>
-
-
 #include <manipulator_h_base_module_msgs/GetJointPose.h>
 #include <manipulator_h_base_module_msgs/GetKinematicsPose.h>
 #include <yaml-cpp/yaml.h>

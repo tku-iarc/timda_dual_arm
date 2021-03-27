@@ -92,7 +92,6 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     **********************/
   qnode.init();
   setWindowTitle(qnode.getName());
-
 }
 
 MainWindow::~MainWindow() {}
@@ -242,6 +241,11 @@ void MainWindow::on_des_Release_button_clicked( bool check )
   qnode.sendReleasePoseMsg( msg );
 }
 //=============================================================
+void MainWindow::on_joy_calib_button_clicked( bool check )
+{
+  ui.joy_calib_button->setText("FUCK");
+}
+
 void MainWindow::on_ini_pose_button_clicked( bool check )
 {
   std_msgs::String msg;

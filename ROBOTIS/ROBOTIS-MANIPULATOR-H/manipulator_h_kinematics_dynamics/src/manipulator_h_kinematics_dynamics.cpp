@@ -304,7 +304,7 @@ void ManipulatorKinematicsDynamics::forwardKinematics(int joint_ID)
     manipulator_link_data_[i+1]->transformation_.block<3, 3>(0, 0) = manipulator_link_data_[i+1]->orientation_;
   }
   getPhiAngle();
-  manipulator_link_data_[END_LINK]->euler= rotation2rpy(manipulator_link_data_[8]->orientation_);
+  manipulator_link_data_[END_LINK]->euler = rotation2rpy(manipulator_link_data_[8]->orientation_);
 }
 
 Eigen::MatrixXd ManipulatorKinematicsDynamics::calcJacobian(std::vector<int> idx)
@@ -1031,6 +1031,39 @@ double ManipulatorKinematicsDynamics::limit_check(Eigen::Vector3d &goal_position
   
 }
 
+Eigen::MatrixXd ManipulatorKinematicsDynamics::rotationX( double angle )
+{
+  Eigen::MatrixXd _rotation( 3, 3 );
+
+  _rotation << 1.0,          0.0,           0.0,
+      0.0, cos( angle ), -sin( angle ),
+      0.0, sin( angle ),  cos( angle );
+
+  return _rotation;
+}
+
+Eigen::MatrixXd ManipulatorKinematicsDynamics::rotationY( double angle )
+{
+  Eigen::MatrixXd _rotation( 3 , 3 );
+
+  _rotation << cos( angle ), 0.0, sin( angle ),
+                    0.0,     1.0,     0.0,
+              -sin( angle ), 0.0, cos( angle );
+
+  return _rotation;
+}
+
+Eigen::MatrixXd ManipulatorKinematicsDynamics::rotationZ( double angle )
+{
+  Eigen::MatrixXd _rotation(3,3);
+
+  _rotation << cos( angle ), -sin( angle ), 0.0,
+      sin( angle ),  cos( angle ), 0.0,
+      0.0,           0.0, 1.0;
+
+  return _rotation;
+}
+
 Eigen::MatrixXd ManipulatorKinematicsDynamics::rotation2rpy( Eigen::MatrixXd rotation )
 {
   Eigen::MatrixXd _rpy = Eigen::MatrixXd::Zero( 3 , 1 );
@@ -1041,5 +1074,59 @@ Eigen::MatrixXd ManipulatorKinematicsDynamics::rotation2rpy( Eigen::MatrixXd rot
   
 
   return _rpy;
+}
+
+Eigen::MatrixXd ManipulatorKinematicsDynamics::rpy2rotation( double roll, double pitch, double yaw )
+{
+  Eigen::Matrix3d origin;
+  origin << 1, 0, 0,
+            0,-1, 0,
+            0, 0,-1;
+  // Eigen::MatrixXd _rotation = rotationZ( yaw ) * rotationY( pitch ) * rotationX( roll );
+  Eigen::MatrixXd _rotation = origin * rotationY( pitch ) * rotationX( yaw ) * rotationZ( roll );
+
+  return _rotation;
+}
+
+Eigen::Quaterniond ManipulatorKinematicsDynamics::rpy2quaternion( double roll, double pitch, double yaw )
+{
+  Eigen::MatrixXd _rotation = rpy2rotation( roll, pitch, yaw );
+
+  // std::cout<<"OLDROTATIONOLDROTATIONOLDROTATION"<<std::endl<<_rotation<<std::endl;
+
+  Eigen::Matrix3d _rotation3d;
+  _rotation3d = _rotation.block( 0 , 0 , 3 , 3 );
+
+  Eigen::Quaterniond _quaternion;
+
+  _quaternion = _rotation3d;
+
+  return _quaternion;
+}
+
+Eigen::Quaterniond ManipulatorKinematicsDynamics::rotation2quaternion( Eigen::MatrixXd rotation )
+{
+  Eigen::Matrix3d _rotation3d;
+
+  _rotation3d = rotation.block( 0 , 0 , 3 , 3 );
+
+  Eigen::Quaterniond _quaternion;
+  _quaternion = _rotation3d;
+
+  return _quaternion;
+}
+
+Eigen::MatrixXd ManipulatorKinematicsDynamics::quaternion2rpy( Eigen::Quaterniond quaternion )
+{
+  Eigen::MatrixXd _rpy = rotation2rpy( quaternion.toRotationMatrix() );
+
+  return _rpy;
+}
+
+Eigen::MatrixXd ManipulatorKinematicsDynamics::quaternion2rotation( Eigen::Quaterniond quaternion )
+{
+  Eigen::MatrixXd _rotation = quaternion.toRotationMatrix();
+
+  return _rotation;
 }
 }

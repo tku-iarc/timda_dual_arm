@@ -76,9 +76,20 @@ public:
   bool slideInverseKinematics(Eigen::Vector3d goal_position, Eigen::Matrix3d rotation, 
                                                             double slide_pos, double& goal_slide_pos);
   double limit_check(Eigen::Vector3d &goal_position, Eigen::Matrix3d &rotation);
-  static Eigen::MatrixXd rotation2rpy( Eigen::MatrixXd rotation );
+  
   void load_LinkParam();
   void getPhiAngle();
+  
+  static Eigen::MatrixXd rotationX( double angle );
+  static Eigen::MatrixXd rotationY( double angle );
+  static Eigen::MatrixXd rotationZ( double angle );
+  static Eigen::MatrixXd rotation2rpy( Eigen::MatrixXd rotation );
+  static Eigen::MatrixXd rpy2rotation( double roll, double pitch, double yaw );
+  static Eigen::Quaterniond rpy2quaternion( double roll, double pitch, double yaw );
+  static Eigen::Quaterniond rotation2quaternion( Eigen::MatrixXd rotation );
+  static Eigen::MatrixXd quaternion2rpy( Eigen::Quaterniond quaternion );
+  static Eigen::MatrixXd quaternion2rotation( Eigen::Quaterniond quaternion );
+
 };
 
 }

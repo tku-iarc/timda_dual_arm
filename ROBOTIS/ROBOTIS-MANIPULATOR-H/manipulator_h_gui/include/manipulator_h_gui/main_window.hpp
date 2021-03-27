@@ -98,6 +98,7 @@ public Q_SLOTS:
     void on_ini_pose_button_clicked( bool check );
     void on_home_pose_button_clicked( bool check );
     void on_set_mode_button_clicked( bool check );
+    void on_joy_calib_button_clicked( bool check );
     void on_relative_xp_button_clicked( bool check );
     void on_relative_xm_button_clicked( bool check );
     void on_relative_yp_button_clicked( bool check );

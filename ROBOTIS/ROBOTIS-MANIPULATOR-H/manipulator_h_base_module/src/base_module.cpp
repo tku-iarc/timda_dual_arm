@@ -140,7 +140,10 @@ void BaseModule::queueThread()
                                                                &BaseModule::kinematicsPoseMsgCallback, this);
   ros::Subscriber p2p_pose_msg_sub = ros_node.subscribe("p2p_pose_msg", 5,
                                                          &BaseModule::p2pPoseMsgCallback, this);
-  ros::Subscriber vector_move_msg_sub = ros_node.subscribe("vector_move_msg", 5,
+  ros::Subscriber vector_move_rpy_msg_sub = ros_node.subscribe("vector_move_rpy_msg", 5,
+                                                           &BaseModule::vectorMoveRpyMsgCallback, this);
+
+  ros::Subscriber vector_move_quat_msg_sub = ros_node.subscribe("vector_move_quat_msg", 5,
                                                            &BaseModule::vectorMoveMsgCallback, this);
 
   ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("get_joint_pose",
@@ -419,8 +422,14 @@ void BaseModule::p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPos
   robotis_->is_ik = false;
   return;
 }
+
 void BaseModule::vectorMoveMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg)
 {
+  if(msg->moving_vector.size() != 8)
+  {
+    ROS_INFO("moving_vector Size Error!!!");
+    return;
+  }
   bool limit_success = false;
   bool ik_success = false;
   Eigen::Matrix3d target_rotation;
@@ -429,25 +438,54 @@ void BaseModule::vectorMoveMsgCallback(const manipulator_h_base_module_msgs::Vec
   Eigen::Quaterniond curr_quaternion = robotis_framework::convertRotationToQuaternion(manipulator_->manipulator_link_data_[END_LINK]->orientation_);
 
   for(int i = 0; i < msg->moving_vector.size(); i++)
-  {
-    if(i > 7)
-    {
-      ROS_INFO("moving_vector Size Error!!!");
-      return;
-    }
-    moving_vector[i] = (fabs(msg->moving_vector[i]) > 0.001) ? (msg->moving_vector[i] < 0) ? -0.001 : 0.001 : msg->moving_vector[i];
-  }
-  target_position << manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(0, 0) + moving_vector[0],
-                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(1, 0) + moving_vector[1],
-                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(2, 0) + moving_vector[2];
+    moving_vector[i] = (fabs(msg->moving_vector[i]) > 1) ? (msg->moving_vector[i] < 0) ? -1 : 1 : msg->moving_vector[i];
 
-  Eigen::Quaterniond target_quaterniond(curr_quaternion.w() + moving_vector[3],
-                                        curr_quaternion.x() + moving_vector[4],
-                                        curr_quaternion.y() + moving_vector[5],
-                                        curr_quaternion.z() + moving_vector[6]);
+  target_position << manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(0, 0) + moving_vector[0]/1000,
+                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(1, 0) + moving_vector[1]/1000,
+                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(2, 0) + moving_vector[2]/1000;
+
+  Eigen::Quaterniond target_quaterniond(curr_quaternion.w() + moving_vector[3]/1000,
+                                        curr_quaternion.x() + moving_vector[4]/1000,
+                                        curr_quaternion.y() + moving_vector[5]/1000,
+                                        curr_quaternion.z() + moving_vector[6]/1000);
   target_quaterniond = target_quaterniond.normalized();
-  double target_phi = manipulator_->manipulator_link_data_[END_LINK]->phi_ + moving_vector[7]*M_PI/2;
+  double target_phi = manipulator_->manipulator_link_data_[END_LINK]->phi_ + moving_vector[7]/1000;
   target_rotation = robotis_framework::convertQuaternionToRotation(target_quaterniond);
+
+  slide_->goal_slide_pos = 0;
+  manipulator_->manipulator_link_data_[0]->mov_speed_ = 800;
+  limit_success = manipulator_->limit_check(target_position, target_rotation);
+  if(limit_success)
+    ik_success = manipulator_->inverseKinematics(END_LINK, target_position, target_rotation, target_phi, slide_->goal_slide_pos, false);
+  if (ik_success)
+    this->vectorMove();
+  return;
+}
+void BaseModule::vectorMoveRpyMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg)
+{
+  if(msg->moving_vector.size() != 7)
+  {
+    ROS_INFO("moving_vector Size Error!!!");
+    return;
+  }
+  bool limit_success = false;
+  bool ik_success = false;
+  Eigen::Vector3d target_position;
+  Eigen::Vector3d target_rpy;
+  Eigen::VectorXf moving_vector(8);
+  
+  for(int i = 0; i < msg->moving_vector.size(); i++)
+    moving_vector[i] = (fabs(msg->moving_vector[i]) > 1) ? (msg->moving_vector[i] < 0) ? -1 : 1 : msg->moving_vector[i];
+
+  target_position << manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(0, 0) + moving_vector[0]/1000,
+                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(1, 0) + moving_vector[1]/1000,
+                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(2, 0) + moving_vector[2]/1000;
+  target_rpy      << manipulator_->manipulator_link_data_[END_LINK]->euler.coeff(0, 0) + moving_vector[3]/1000,
+                     manipulator_->manipulator_link_data_[END_LINK]->euler.coeff(1, 0) + moving_vector[4]/1000,
+                     manipulator_->manipulator_link_data_[END_LINK]->euler.coeff(2, 0) + moving_vector[5]/1000;
+
+  double target_phi = manipulator_->manipulator_link_data_[END_LINK]->phi_ + moving_vector[6]/1000;
+  Eigen::Matrix3d target_rotation = manipulator_->rpy2rotation(target_rpy.coeff(0, 0), target_rpy.coeff(1, 0), target_rpy.coeff(2, 0));
 
   slide_->goal_slide_pos = 0;
   manipulator_->manipulator_link_data_[0]->mov_speed_ = 800;

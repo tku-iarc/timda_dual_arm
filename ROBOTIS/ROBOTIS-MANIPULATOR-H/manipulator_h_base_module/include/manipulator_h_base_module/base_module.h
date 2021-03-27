@@ -122,6 +122,7 @@ public:
   void kinematicsPoseMsgCallback(const manipulator_h_base_module_msgs::KinematicsPose::ConstPtr& msg);
   void p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg);   //new
   void vectorMoveMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg);
+  void vectorMoveRpyMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg);
 
 
   bool getJointPoseCallback(manipulator_h_base_module_msgs::GetJointPose::Request &req,
