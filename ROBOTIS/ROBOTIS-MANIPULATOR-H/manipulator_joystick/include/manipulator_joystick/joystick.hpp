@@ -5,6 +5,7 @@
 #include <ros/network.h>
 #include <string>
 #include <sensor_msgs/Joy.h>
+#include <std_msgs/String.h>
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <manipulator_h_base_module_msgs/VectorMove.h>
@@ -38,6 +39,8 @@ public:
     bool get_is_calib(void){return is_calib;}
 
 private:
+    enum InputStatus : int {joy_gripper_grab_, joy_gripper_release_, joy_sucker_on_, joy_sucker_off_, joy_set_mode_, cmd_done, no_input};
+    InputStatus input_status;
 
     bool right_connect;
     bool left_connect; 
@@ -72,6 +75,8 @@ private:
     ros::Subscriber joy_sub;
     ros::Publisher  right_vector_move_pub;
     ros::Publisher  left_vector_move_pub;
+    ros::Publisher  right_set_mode_pub;
+    ros::Publisher  left_set_mode_pub;
 
     manipulator_h_base_module_msgs::VectorMove moving_msg;
 

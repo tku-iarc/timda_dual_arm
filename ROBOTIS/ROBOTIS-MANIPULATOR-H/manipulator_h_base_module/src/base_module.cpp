@@ -425,6 +425,8 @@ void BaseModule::p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPos
 
 void BaseModule::vectorMoveMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg)
 {
+  if(enable_ == false || robotis_->is_planning_ == true)
+    return;
   if(msg->moving_vector.size() != 8)
   {
     ROS_INFO("moving_vector Size Error!!!");
@@ -463,6 +465,9 @@ void BaseModule::vectorMoveMsgCallback(const manipulator_h_base_module_msgs::Vec
 }
 void BaseModule::vectorMoveRpyMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg)
 {
+  if (enable_ == false || robotis_->is_planning_ == true)
+    return;
+
   if(msg->moving_vector.size() != 7)
   {
     ROS_INFO("moving_vector Size Error!!!");
@@ -521,7 +526,7 @@ void BaseModule::generateInitPoseTrajProcess()
 {
   if (enable_ == false)
     return;
-
+  robotis_->is_planning_ = true;
   for (int id = 1; id <= MAX_JOINT_ID; id++)
   {
     double ini_value = joint_state_->goal_joint_state_[id].position_;
@@ -546,7 +551,7 @@ void BaseModule::generateJointTrajProcess()
 {
   if (enable_ == false)
     return;
-
+  robotis_->is_planning_ = true;
   /* set movement time */
   double mov_speed = robotis_->joint_pose_msg_.speed;
   double tol = 90 * (mov_speed / 100) * DEGREE2RADIAN; // rad per sec
@@ -623,6 +628,8 @@ void BaseModule::generateJointTrajProcess()
 
 void BaseModule::generateTaskTrajProcess()
 {
+  robotis_->is_planning_ = true;
+
   /* set movement time */
   double mov_speed = robotis_->kinematics_pose_msg_.speed;
   double tol = 0.3 * (mov_speed / 100); // m per sec
@@ -705,6 +712,7 @@ void BaseModule::generateTaskTrajProcess()
 
     robotis_->is_moving_ = false;
     robotis_->ik_solve_ = false;
+    robotis_->is_planning_ = false;
     robotis_->cnt_ = 0;
   }
 
@@ -811,6 +819,7 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
 
         robotis_->is_moving_ = false;
         robotis_->ik_solve_ = false;
+        robotis_->is_planning_ = false;
         robotis_->cnt_ = 0;
       }
       robotis_->is_ik = false;
@@ -843,6 +852,7 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory");
     robotis_->is_moving_ = false;
     robotis_->ik_solve_ = false;
+    robotis_->is_planning_ = false;
     robotis_->cnt_ = 0;
   }
 }
@@ -851,6 +861,7 @@ void BaseModule::stop()
 {
   robotis_->is_moving_ = false;
   robotis_->ik_solve_ = false;
+  robotis_->is_planning_ = false;
   robotis_->cnt_ = 0;
 
   manipulator_h_base_module_msgs::JointPose stop_msg;

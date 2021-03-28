@@ -29,6 +29,7 @@ RobotisState::RobotisState()
 {
   is_moving_ = false;
   is_ik = false;
+  is_planning_ = false;
 
   cnt_      = 0;
   mov_time_ = 1.0;
