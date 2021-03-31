@@ -6,6 +6,7 @@
 #include <string>
 #include <sensor_msgs/Joy.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Bool.h>
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <manipulator_h_base_module_msgs/VectorMove.h>
@@ -17,6 +18,7 @@ public:
     Joystick(int argc, char **argv);
     virtual ~Joystick();
     void init(void);
+
     void joysticMsgCallback(const sensor_msgs::Joy::ConstPtr& msg);
     bool calibrationCallback(manipulator_joystick::JoyCalibration::Request &req, 
                              manipulator_joystick::JoyCalibration::Response &res );
@@ -41,9 +43,9 @@ public:
 private:
     enum InputStatus : int {joy_gripper_grab_, joy_gripper_release_, joy_sucker_on_, joy_sucker_off_, joy_set_mode_, cmd_done, no_input};
     InputStatus input_status;
-
-    bool right_connect;
-    bool left_connect; 
+    bool  tmp_enable;
+    bool  right_connect;
+    bool  left_connect; 
     bool  joy_gripper_grab;
     bool  joy_gripper_release;
     bool  joy_sucker_on;
@@ -77,6 +79,8 @@ private:
     ros::Publisher  left_vector_move_pub;
     ros::Publisher  right_set_mode_pub;
     ros::Publisher  left_set_mode_pub;
+    ros::Publisher  robot_stop_pub;
+    ros::ServiceServer calib_server;
 
     manipulator_h_base_module_msgs::VectorMove moving_msg;
 

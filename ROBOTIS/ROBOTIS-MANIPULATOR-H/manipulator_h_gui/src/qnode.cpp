@@ -79,6 +79,7 @@ bool QNode::init() {
 
   get_joint_pose_client_ = n.serviceClient<manipulator_h_base_module_msgs::GetJointPose>("get_joint_pose", 0);
   get_kinematics_pose_client_ = n.serviceClient<manipulator_h_base_module_msgs::GetKinematicsPose>("get_kinematics_pose", 0);
+  joy_calib_client_ = n.serviceClient<manipulator_joystick::JoyCalibration>("/joy_calib", 0);
 
   status_msg_sub_ = n.subscribe("status", 10, &QNode::statusMsgCallback, this);
 
@@ -283,5 +284,13 @@ void QNode::getCurrPose(double (&data)[7])
     log(Error, "fail to get current pose.");
   return;
     
+}
+
+bool QNode::joyCalib(bool cmd)
+{
+  manipulator_joystick::JoyCalibration _calib_cmd;
+  _calib_cmd.request.calib_cmd = cmd;
+  if( joy_calib_client_.call( _calib_cmd ) )
+    return _calib_cmd.response.calib_status;
 }
 }  // namespace manipulator_h_gui

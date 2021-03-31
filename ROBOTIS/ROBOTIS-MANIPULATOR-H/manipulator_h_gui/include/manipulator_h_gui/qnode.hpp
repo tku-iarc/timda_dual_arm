@@ -52,6 +52,7 @@
 #include <manipulator_h_base_module_msgs/P2PPose.h>
 #include <manipulator_h_base_module_msgs/GetJointPose.h>
 #include <manipulator_h_base_module_msgs/GetKinematicsPose.h>
+#include <manipulator_joystick/JoyCalibration.h>
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 
@@ -109,6 +110,7 @@ public:
     //=====================================================================
     void getCurrPose(double (&data)[7]);
     inline QString getName(){return self_name_;}
+    bool joyCalib(bool cmd);
 
 
 public Q_SLOTS:
@@ -143,6 +145,7 @@ private:
     //==============================================
     ros::ServiceClient  get_joint_pose_client_;
     ros::ServiceClient  get_kinematics_pose_client_;
+    ros::ServiceClient  joy_calib_client_;
 
     ros::Subscriber     status_msg_sub_;
 

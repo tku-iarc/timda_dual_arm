@@ -40,9 +40,21 @@ class ManipulatorKinematicsDynamics
 {
 private:
   Eigen::MatrixXd DHTABLE;
+  Eigen::MatrixXd INV_DHTABLE;
   double d1,d2,d3,d4,a1,a2;
   double Lse, Lew;
   double RL_prm;
+
+  Eigen::VectorXd JointAngle;
+  Eigen::VectorXd tmp_JointAngle;
+
+  Eigen::MatrixXd R03;
+  Eigen::MatrixXd R04;
+  Eigen::MatrixXd R07;
+  Eigen::MatrixXd R47;
+  Eigen::MatrixXd R57;
+  Eigen::MatrixXd R72;
+  Eigen::MatrixXd R05_notheta3;
 
 public:
   ManipulatorKinematicsDynamics();
@@ -70,11 +82,13 @@ public:
   bool inverseKinematics_test(Eigen::MatrixXd tar_position,
                               Eigen::MatrixXd tar_orientation, double tar_phi, double tar_slide_pos);
   Eigen::MatrixXd Trans( double &Theta, Eigen::VectorXd &DH );
-  Eigen::Vector3d forwardKinematics_7(int joint_ID, Eigen::VectorXd angle, Eigen::MatrixXd &DHTABLE_IK);
+  Eigen::Vector3d forwardKinematics_7(int joint_ID, Eigen::VectorXd angle);
+  bool InverseKinematics_p2p( Eigen::VectorXd goal_position, Eigen::Matrix3d rotation, 
+                              double Phi, double slide_position, Eigen::VectorXd Old_JointAngle, bool is_p2p);
   bool InverseKinematics_7( Eigen::VectorXd position, Eigen::Matrix3d rotation, double phi, 
                             double slide_position, Eigen::VectorXd Old_JointAngle, bool is_p2p, bool is_run);
-  bool slideInverseKinematics(Eigen::Vector3d goal_position, Eigen::Matrix3d rotation, 
-                                                            double slide_pos, double& goal_slide_pos);
+  bool slideInverseKinematics(Eigen::Vector3d& goal_position, Eigen::Matrix3d& rotation, 
+                              double& slide_pos, double& goal_slide_pos, bool is_p2p);
   double limit_check(Eigen::Vector3d &goal_position, Eigen::Matrix3d &rotation);
   
   void load_LinkParam();

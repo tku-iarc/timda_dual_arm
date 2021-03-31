@@ -92,6 +92,8 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
     **********************/
   qnode.init();
   setWindowTitle(qnode.getName());
+
+  joy_calib_state = false;
 }
 
 MainWindow::~MainWindow() {}
@@ -243,7 +245,13 @@ void MainWindow::on_des_Release_button_clicked( bool check )
 //=============================================================
 void MainWindow::on_joy_calib_button_clicked( bool check )
 {
-  ui.joy_calib_button->setText("FUCK");
+  bool cmd;
+  cmd = (joy_calib_state) ? false : true;
+  joy_calib_state = qnode.joyCalib( cmd );
+  if( joy_calib_state )
+    ui.joy_calib_button->setText("Stop Calib");
+  else
+    ui.joy_calib_button->setText("Joy Calib");
 }
 
 void MainWindow::on_ini_pose_button_clicked( bool check )

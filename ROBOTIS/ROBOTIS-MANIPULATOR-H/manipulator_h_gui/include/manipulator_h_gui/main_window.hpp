@@ -133,6 +133,7 @@ private:
     QList<QAbstractSpinBox *> joint_spinbox;
 
     double relative_movement_data[7];
+    bool joy_calib_state;
 };
 
 }  // namespace manipulator_h_gui

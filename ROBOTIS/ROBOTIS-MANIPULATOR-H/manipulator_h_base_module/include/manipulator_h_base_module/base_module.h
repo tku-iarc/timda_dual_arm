@@ -146,6 +146,7 @@ public:
 
   void stop();
   bool isRunning();
+  Eigen::MatrixXd linearInterpolation(int& step, double& init, double& end);
 
   /* Parameter */
   BaseJointState                 *joint_state_;

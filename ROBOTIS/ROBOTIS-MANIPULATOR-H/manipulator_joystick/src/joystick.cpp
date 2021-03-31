@@ -8,8 +8,11 @@ Joystick::Joystick(int argc, char **argv)
     ros::NodeHandle nh_private("~");
     std::string side;
     nh_private.getParam("/joy_control/side", side);
-    joy_sub = nh.subscribe("joy", 5, &Joystick::joysticMsgCallback, this);
     joy_limit_path = ros::package::getPath("manipulator_joystick") + "/config/joy_limit.yaml";
+    joy_sub = nh.subscribe("joy", 5, &Joystick::joysticMsgCallback, this);
+    calib_server = nh.advertiseService("joy_calib", &Joystick::calibrationCallback, this);
+
+    robot_stop_pub = nh.advertise<std_msgs::Bool>("/robot/is_stop", 0);
     if(side.compare("right") == 0 || side.compare("both") == 0)
     {
         right_connect = true;
@@ -43,6 +46,7 @@ Joystick::Joystick(int argc, char **argv)
     joy_sucker_off =  false;
     joy_set_mode = false;
     is_calib = false;
+    tmp_enable = false;
     max_x = 1;
     max_y = 1;
     max_z = 1;
@@ -60,7 +64,9 @@ Joystick::~Joystick()
 }
 
 void Joystick::joysticMsgCallback(const sensor_msgs::Joy::ConstPtr& msg)
-{
+{   
+    tmp_enable = joy_left_enable || joy_right_enable;
+
     if(is_calib)
     {
         if(msg->axes[1] > max_x)
@@ -110,7 +116,8 @@ void Joystick::joysticMsgCallback(const sensor_msgs::Joy::ConstPtr& msg)
             else if(msg->buttons[8] == 1)
                 input_status = joy_set_mode_;
         }
-        if(joy_left_enable && joy_right_enable)
+        tmp_enable = tmp_enable && !(joy_left_enable || joy_right_enable);
+        if((joy_left_enable && joy_right_enable) || tmp_enable)
         {
             joy_x = 0;
             joy_y = 0;
@@ -136,6 +143,12 @@ bool Joystick::calibrationCallback(manipulator_joystick::JoyCalibration::Request
         cent_x = joy_x;
         cent_y = joy_y;
         cent_z = joy_z;
+        max_x = 0;
+        max_y = 0;
+        max_z = 0;
+        min_x = 0;
+        min_y = 0;
+        min_z = 0;
     }
     res.calib_status = is_calib;
     return true;
@@ -143,27 +156,21 @@ bool Joystick::calibrationCallback(manipulator_joystick::JoyCalibration::Request
 
 void Joystick::process(void)
 {
-    ros::Rate loop_rate(125);
+    ros::Rate loop_rate(10);
     while(ros::ok())
     {
+        ros::spinOnce();
+        loop_rate.sleep();
         if(is_calib)
+            continue;
+        if(joy_right_enable && joy_left_enable)
         {
-            joy_x = 0;
-            joy_y = 0;
-            joy_z = 0;
-            joy_roll = 0;
-            joy_pitch = 0;
-            joy_yaw = 0;
-            joy_phi = 0;
-            joy_left_enable = false;
-            joy_right_enable = false;
-            joy_gripper_grab = false;
-            joy_gripper_release = false;
-            joy_sucker_on = false;
-            joy_sucker_off =  false;
-            joy_set_mode = false;
+            std_msgs::Bool msg;
+            msg.data = true;
+            robot_stop_pub.publish(msg);
+            continue;
         }
-        else if(joy_right_enable && right_connect)
+        if(joy_right_enable && right_connect || tmp_enable && right_connect)
         {
             if(input_status != no_input && input_status != cmd_done)
             {
@@ -184,7 +191,7 @@ void Joystick::process(void)
                     case joy_set_mode_:
                         std_msgs::String msg;
                         msg.data ="set_mode";
-                        right_set_mode_pub.publish ( msg );
+                        right_set_mode_pub.publish( msg );
                         input_status = cmd_done;
                         break;
                 }
@@ -205,7 +212,7 @@ void Joystick::process(void)
                 }
             }
         }
-        else if(joy_left_enable && left_connect)
+        if(joy_left_enable && left_connect || tmp_enable && left_connect)
         {
             if(input_status != no_input && input_status != cmd_done)
             {
@@ -247,8 +254,6 @@ void Joystick::process(void)
                 }
             }
         }
-        ros::spinOnce();
-        loop_rate.sleep();
     }
 }
 
