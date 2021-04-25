@@ -191,7 +191,7 @@ void BaseModule::specificPoseMsgCallback(const std_msgs::String::ConstPtr& msg)
     if (msg->data != "")
     {
       // parse initial pose
-      std::string pose_path = ros::package::getPath("manipulator_h_base_module") + "/config/" + msg->data + "yaml";
+      std::string pose_path = ros::package::getPath("manipulator_h_base_module") + "/config/" + msg->data + ".yaml";
       parsePoseData(pose_path);
 
       tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateInitPoseTrajProcess, this));
@@ -220,19 +220,19 @@ void BaseModule::setModeMsgCallback(const std_msgs::String::ConstPtr& msg)
     {
       usleep(1000);
     }
-    if (robotis_->is_moving_ == false)
-    {
-      // parse initial pose
-      std::string ini_pose_path = ros::package::getPath("manipulator_h_base_module") + "/config/ini_pose.yaml";
-      parsePoseData(ini_pose_path);
+    // if (robotis_->is_moving_ == false)
+    // {
+    //   // parse initial pose
+    //   std::string ini_pose_path = ros::package::getPath("manipulator_h_base_module") + "/config/ini_pose.yaml";
+    //   parsePoseData(ini_pose_path);
 
-      tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateInitPoseTrajProcess, this));
-      delete tra_gene_thread_;
-    }
-    else
-    {
-      ROS_INFO("previous task is alive");
-    }
+    //   tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateInitPoseTrajProcess, this));
+    //   delete tra_gene_thread_;
+    // }
+    // else
+    // {
+    //   ROS_INFO("previous task is alive");
+    // }
   
   return;
 

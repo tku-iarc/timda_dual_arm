@@ -1,12 +1,10 @@
 #include "linear_motion/slide.h"
-
+#include <ctime>
+clock_t a,b;
 void slide_callback(const manipulator_h_base_module_msgs::SlideCommand::ConstPtr& msg)
 {
-    //goal_pos = (double)100000.0*(msg->pos+0.8);
-    goal_pos = -1*(double)100000.0*(msg->pos);
-
-    cmd_arr[4] = goal_pos>>16;
-    cmd_arr[5] = goal_pos;
+    goal_pos = (double)100000.0*(msg->pos+0.8);
+    // goal_pos = -1*(double)100000.0*(msg->pos);
 }
 
 void read_feedback()
@@ -55,33 +53,41 @@ void send_cmd()
 {
     int speed = 0;
     int smp_deleration = DECELERATION * smp_time;
-
-    ros::Rate loop_rate(1 / smp_time);
+    b = clock();
+    ros::Rate cmd_loop_rate(1/smp_time);
     while (ros::ok())
     {
+        std::cout<<"yoyo"<<std::endl;
         if (goal_pos != curr_pos)
         {
-            int diff_pos = abs(goal_pos - curr_pos);
-            int speed_tmp = diff_pos / smp_time;
+            int diff_pos = goal_pos - curr_pos;
+            int speed_tmp = abs(diff_pos) / (smp_time*8);
             speed_tmp = (speed_tmp < MAX_SPEED) ? speed_tmp : MAX_SPEED;
             speed = (speed_tmp < speed) ? (
                 ((speed - speed_tmp) < smp_deleration) ? speed_tmp : speed - smp_deleration
                 ) : speed_tmp;
             // speed = (speed_tmp < speed) ? speed : speed_tmp;
             // cmd_arr[6] = speed>>16;
+            // if(diff_pos > 3) goal_pos = goal_pos + (diff_pos - 3) * 2;
+            // if(diff_pos < -3) goal_pos = goal_pos + (diff_pos + 3) * 2;
+            // if(goal_pos > 80000.0) goal_pos = 80000;
+            // if(goal_pos < 0.0) goal_pos = 0;
+            cmd_arr[4] = goal_pos>>16;
+            cmd_arr[5] = goal_pos;
             cmd_arr[7]  = speed;
-            cmd_arr[9]  = exp((speed / MAX_SPEED)*4 - 2) * 5410;
+            // cmd_arr[9]  = exp((speed / MAX_SPEED)*4 - 2) * 5410;
+            cmd_arr[9] = speed*2;
             cmd_arr[11] = speed*2;
-            // cmd_arr[9] = speed*2;
+            
 
-            //std::cout << "speed = " << (cmd_arr[7] | cmd_arr[6]<<16) <<std::endl;
+            std::cout << "speed = " << (cmd_arr[7] | cmd_arr[6]<<16) <<", "<<diff_pos<<std::endl;
             write_command();
         }
         else
             speed = 0;
 
         read_feedback();
-        loop_rate.sleep();
+        cmd_loop_rate.sleep();
     }
 }
 
@@ -121,7 +127,7 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("slide_command_msg", 1, slide_callback);
     ros::Publisher  pub = n.advertise<linear_motion::Slide_Feedback>("slide_feedback_msg", 1);
-    ros::Rate loop_rate(125);
+    ros::Rate loop_rate(250);
 
     // ============================= ROS Loop =============================
     // main thread to communicate with other node

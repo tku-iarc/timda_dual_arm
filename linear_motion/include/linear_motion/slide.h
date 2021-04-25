@@ -30,7 +30,7 @@ modbus_t *ct    = nullptr;
 int goal_pos    = 0;
 int curr_pos    = 0;
 int curr_speed  = 0; 
-double smp_time = 0.01;
+double smp_time = 0.008;
 
 boost::thread  *com_driver_thread_;
 linear_motion::Slide_Feedback msg_fdb;
