@@ -57,6 +57,7 @@ public:
   double slide_pos;
   bool   gazebo_mode;
   bool   is_busy;
+  bool slide_init_done;
 
 };
 

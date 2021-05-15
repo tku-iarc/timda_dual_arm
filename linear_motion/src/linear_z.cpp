@@ -57,7 +57,6 @@ void send_cmd()
     ros::Rate cmd_loop_rate(1/smp_time);
     while (ros::ok())
     {
-        std::cout<<"yoyo"<<std::endl;
         if (goal_pos != curr_pos)
         {
             int diff_pos = goal_pos - curr_pos;
@@ -80,7 +79,7 @@ void send_cmd()
             cmd_arr[11] = speed*2;
             
 
-            std::cout << "speed = " << (cmd_arr[7] | cmd_arr[6]<<16) <<", "<<diff_pos<<std::endl;
+            // std::cout << "speed = " << (cmd_arr[7] | cmd_arr[6]<<16) <<", "<<diff_pos<<std::endl;
             write_command();
         }
         else
@@ -119,7 +118,7 @@ int main(int argc, char **argv)
     goal_pos = curr_pos;
     std::cout << side_str + " slide connect ok " << goal_pos<<std::endl;
 
-
+    
     // generate thread to communicate with driver
     com_driver_thread_ = new boost::thread(boost::bind( &send_cmd ));
 
@@ -127,7 +126,7 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("slide_command_msg", 1, slide_callback);
     ros::Publisher  pub = n.advertise<linear_motion::Slide_Feedback>("slide_feedback_msg", 1);
-    ros::Rate loop_rate(250);
+    ros::Rate loop_rate(125);
 
     // ============================= ROS Loop =============================
     // main thread to communicate with other node
