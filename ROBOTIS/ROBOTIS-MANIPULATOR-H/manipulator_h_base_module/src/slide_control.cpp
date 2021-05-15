@@ -7,7 +7,7 @@ slide_control::slide_control()
 {
     ros::NodeHandle nh_private("~");
     gazebo_mode = nh_private.param<bool>("en_sim", false);
-    slide_init_done = false;
+    is_init = false;
     if(gazebo_mode)
     {
         std::string side_str  = nh_private.param<std::string>("side", "");
@@ -24,9 +24,15 @@ slide_control::slide_control()
 }
 slide_control::~slide_control(){}
 
+void slide_control::slide_init()
+{
+    is_init = true;
+    result_slide_pos = slide_pos;
+}
+
 void slide_control::slide_pub()
 {
-    if(!slide_init_done)
+    if(!is_init)
         return;
     if(gazebo_mode)
     {
@@ -48,5 +54,4 @@ void slide_control::slideFeedback(const linear_motion::Slide_Feedback::ConstPtr&
     is_busy = msg->is_busy;
     slide_pos = (double)msg->curr_pos / 100000.0 - 0.8;
     // slide_pos = -1*(double)msg->curr_pos / 100000.0;
-    slide_init_done = true;
 }

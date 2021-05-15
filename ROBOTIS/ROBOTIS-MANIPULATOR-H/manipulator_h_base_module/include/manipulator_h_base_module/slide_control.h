@@ -48,8 +48,8 @@ public:
   ~slide_control();
 
   /* ROS Topic Callback Functions */
-
-  void slide_pub ();
+  void slide_init();
+  void slide_pub();
   void slideFeedback(const linear_motion::Slide_Feedback::ConstPtr& msg);
 
   double goal_slide_pos;
@@ -57,7 +57,7 @@ public:
   double slide_pos;
   bool   gazebo_mode;
   bool   is_busy;
-  bool slide_init_done;
+  bool   is_init;
 
 };
 

@@ -212,6 +212,7 @@ void BaseModule::setModeMsgCallback(const std_msgs::String::ConstPtr& msg)
     stop();
   else
   {
+    slide_->slide_init();
     std_msgs::String str_msg;
     str_msg.data = "base_module";
 

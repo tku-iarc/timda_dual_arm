@@ -1,10 +1,11 @@
 #include "linear_motion/slide.h"
 #include <ctime>
-clock_t a,b;
 void slide_callback(const manipulator_h_base_module_msgs::SlideCommand::ConstPtr& msg)
 {
     goal_pos = (double)100000.0*(msg->pos+0.8);
     // goal_pos = -1*(double)100000.0*(msg->pos);
+    if(goal_pos > 80000.0) goal_pos = 80000;
+    if(goal_pos < 0.0) goal_pos = 0;
 }
 
 void read_feedback()
@@ -53,33 +54,45 @@ void send_cmd()
 {
     int speed = 0;
     int smp_deleration = DECELERATION * smp_time;
-    b = clock();
     ros::Rate cmd_loop_rate(1/smp_time);
     while (ros::ok())
     {
         if (goal_pos != curr_pos)
         {
             int diff_pos = goal_pos - curr_pos;
-            int speed_tmp = abs(diff_pos) / (smp_time*8);
-            speed_tmp = (speed_tmp < MAX_SPEED) ? speed_tmp : MAX_SPEED;
-            speed = (speed_tmp < speed) ? (
-                ((speed - speed_tmp) < smp_deleration) ? speed_tmp : speed - smp_deleration
-                ) : speed_tmp;
+            int speed_tmp = diff_pos / (smp_time*5);
+            // speed_tmp = (speed_tmp < MAX_SPEED) ? speed_tmp : MAX_SPEED;
+            if(speed_tmp > MAX_SPEED) speed_tmp = MAX_SPEED;
+            if(speed_tmp < MIN_SPEED) speed_tmp = MIN_SPEED;
+            // speed = (speed_tmp < speed) ? (
+            //     ((speed - speed_tmp) < smp_deleration) ? speed_tmp : speed - smp_deleration
+            //     ) : speed_tmp;
             // speed = (speed_tmp < speed) ? speed : speed_tmp;
+            // speed = speed_tmp;
             // cmd_arr[6] = speed>>16;
             // if(diff_pos > 3) goal_pos = goal_pos + (diff_pos - 3) * 2;
             // if(diff_pos < -3) goal_pos = goal_pos + (diff_pos + 3) * 2;
             // if(goal_pos > 80000.0) goal_pos = 80000;
             // if(goal_pos < 0.0) goal_pos = 0;
+            // if(abs(diff_pos) < 100)
+            // {
+            //     cmd_arr[3] = 1;
+            //     speed = abs(speed_tmp);
+            // }
+            // else
+            // {
+            //     cmd_arr[3] = 7;
+            //     speed = speed_tmp;
+            // }
+            speed = abs(speed_tmp);
+            cmd_arr[3] = 1;
             cmd_arr[4] = goal_pos>>16;
             cmd_arr[5] = goal_pos;
-            cmd_arr[7]  = speed;
+            cmd_arr[6] = speed>>16;
+            cmd_arr[7] = speed;
             // cmd_arr[9]  = exp((speed / MAX_SPEED)*4 - 2) * 5410;
-            cmd_arr[9] = speed*2;
-            cmd_arr[11] = speed*2;
-            
-
-            // std::cout << "speed = " << (cmd_arr[7] | cmd_arr[6]<<16) <<", "<<diff_pos<<std::endl;
+            cmd_arr[9] = speed;
+            cmd_arr[11] = speed;
             write_command();
         }
         else
