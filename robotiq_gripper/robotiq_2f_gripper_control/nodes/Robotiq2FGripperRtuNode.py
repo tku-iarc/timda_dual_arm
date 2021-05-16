@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # Software License Agreement (BSD License)
 #
@@ -53,6 +53,8 @@ import rospy
 import robotiq_2f_gripper_control.baseRobotiq2FGripper
 import robotiq_modbus_rtu.comModbusRtu
 import os, sys
+sys.path.insert(1, "/usr/local/lib/python3.6/dist-packages/")
+#sys.path.insert(0, '/opt/installer/open_cv/cv_bridge/lib/python3/dist-packages/')
 from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_input  as inputMsg
 from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output as outputMsg
 

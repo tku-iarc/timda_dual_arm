@@ -25,8 +25,8 @@ ros::Publisher costII("consume", &str_msg);
 ros::Publisher arduinoPrint("print", &str_msg);
 
 
-#define ID_right  1
-#define ID_left   2
+#define ID_right  2
+#define ID_left   1
 #define UPSPEED   100
 #define DOWNSPEED 100
 #define ADJ_STEP  4

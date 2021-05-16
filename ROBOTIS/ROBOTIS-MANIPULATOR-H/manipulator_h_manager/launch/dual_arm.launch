@@ -14,11 +14,11 @@
         <!-- <arg name="comport" value="/dev/ttyUSB2" /> -->
     </include>
 
-    <group ns="left_arm">
+    <!--<group ns="left_arm">
         <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
             <param name="comport" value="$(arg comport)"/>
         </node>
-    </group>
+    </group> -->
     <!-- <group ns="right_arm">
         <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
             <param name="comport" value="$(arg comport)"/>
