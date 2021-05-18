@@ -55,7 +55,7 @@ void send_cmd()
     if (goal_pos != curr_pos)
     {
         int diff_pos = goal_pos - curr_pos;
-        int speed_tmp = diff_pos / (smp_time*5);
+        int speed_tmp = float(diff_pos) / (smp_time*20);
         // speed_tmp = (speed_tmp < MAX_SPEED) ? speed_tmp : MAX_SPEED;
         if(speed_tmp > MAX_SPEED) speed_tmp = MAX_SPEED;
         if(speed_tmp < MIN_SPEED) speed_tmp = MIN_SPEED;
@@ -69,25 +69,29 @@ void send_cmd()
         // if(diff_pos < -3) goal_pos = goal_pos + (diff_pos + 3) * 2;
         // if(goal_pos > 80000.0) goal_pos = 80000;
         // if(goal_pos < 0.0) goal_pos = 0;
-        // if(abs(diff_pos) < 100)
-        // {
-        //     cmd_arr[3] = 1;
-        //     cmd_speed = abs(speed_tmp);
-        // }
-        // else
-        // {
-        //     cmd_arr[3] = 7;
-        //     cmd_speed = speed_tmp;
-        // }
-        cmd_speed = abs(speed_tmp);
-        cmd_arr[3] = 1;
+        if(abs(diff_pos) < float(abs(curr_pos))/MAX_SPEED * 100)
+        {
+            cmd_arr[3] = 1;
+            cmd_speed = abs(speed_tmp);
+        }
+        else
+        {
+            cmd_arr[3] = 7;
+            cmd_speed = speed_tmp;
+        }
+        int diff_speed = abs(cmd_speed - curr_speed);
+        int acc = 3 * diff_speed / (smp_time) + 1;
+        // cmd_speed = abs(speed_tmp);
+        // cmd_arr[3] = 1;
         cmd_arr[4] = goal_pos>>16;
         cmd_arr[5] = goal_pos;
         cmd_arr[6] = cmd_speed>>16;
         cmd_arr[7] = cmd_speed;
         // cmd_arr[9]  = exp((cmd_speed / MAX_SPEED)*4 - 2) * 5410;
-        cmd_arr[9] = cmd_speed;
-        cmd_arr[11] = cmd_speed;
+        // cmd_arr[9] = (3*abs(cmd_speed) > ACCELERATION) ? ACCELERATION : 3*abs(cmd_speed);
+        // cmd_arr[11] = (3*abs(cmd_speed) > DECELERATION) ? DECELERATION : 3*abs(cmd_speed);
+        cmd_arr[9] = (acc > ACCELERATION) ? ACCELERATION : acc;
+        cmd_arr[11] = (acc > DECELERATION) ? DECELERATION : acc;
         write_command();
     }
     else
