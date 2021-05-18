@@ -30,8 +30,9 @@ uint16_t fdb_val[FDB_LENGTH] = {0, 0, 0, 0, 0, 0};
 modbus_t *ct    = nullptr;
 int goal_pos    = 0;
 int curr_pos    = 0;
-int curr_speed  = 0; 
+int curr_speed  = 0;
+int cmd_speed   = 0;
 double smp_time = 0.008;
-
+double smp_deleration = 0;
 boost::thread  *com_driver_thread_;
 linear_motion::Slide_Feedback msg_fdb;
