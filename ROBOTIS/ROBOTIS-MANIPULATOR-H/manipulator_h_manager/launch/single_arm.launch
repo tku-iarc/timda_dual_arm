@@ -28,7 +28,7 @@
         <node pkg="joy" type="joy_node" name="dual_arm_joy" output="screen" if="$(eval arm_type == 'single_arm')">
             <param name="joy_node/dev" value="/dev/input/js0"/>
         </node>
-        <node pkg="manipulator_joystick" type="manipulator_joystick_node" name="joy_control" 
+        <node pkg="manipulator_h_joystick" type="manipulator_h_joystick_node" name="joy_control" 
               output="screen" if="$(eval arm_type == 'single_arm')">
             <param name="side" value="both"/>
         </node>

@@ -1,14 +1,14 @@
-#include "manipulator_joystick/joystick.hpp"
+#include "manipulator_h_joystick/joystick.hpp"
 
 Joystick::Joystick(int argc, char **argv)
 {
-    ros::init(argc, argv, "manipulator_joystick");
+    ros::init(argc, argv, "manipulator_h_joystick");
     // ros::start();
     ros::NodeHandle nh;
     ros::NodeHandle nh_private("~");
     std::string side;
     nh_private.getParam("/joy_control/side", side);
-    joy_limit_path = ros::package::getPath("manipulator_joystick") + "/config/joy_limit.yaml";
+    joy_limit_path = ros::package::getPath("manipulator_h_joystick") + "/config/joy_limit.yaml";
     joy_sub = nh.subscribe("joy", 5, &Joystick::joysticMsgCallback, this);
     calib_server = nh.advertiseService("joy_calib", &Joystick::calibrationCallback, this);
 
@@ -132,8 +132,8 @@ void Joystick::joysticMsgCallback(const sensor_msgs::Joy::ConstPtr& msg)
     return;
 }
 
-bool Joystick::calibrationCallback(manipulator_joystick::JoyCalibration::Request &req,
-                                   manipulator_joystick::JoyCalibration::Response &res )
+bool Joystick::calibrationCallback(manipulator_h_joystick::JoyCalibration::Request &req,
+                                   manipulator_h_joystick::JoyCalibration::Response &res )
 {
     if(req.calib_cmd != is_calib)
         is_calib = !is_calib;

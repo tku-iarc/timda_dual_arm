@@ -71,6 +71,7 @@ bool QNode::init() {
   joint_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::JointPose>("joint_pose_msg", 0);
   kinematics_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::KinematicsPose>("kinematics_pose_msg", 0);
   p2p_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::P2PPose>("p2p_pose_msg", 0);
+  moveit_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::P2PPose>("moveit_pose_msg", 0);
 
   //////////////////////////robitq2f_85////////////////////////////////////////////////////////////////////////                                                        
   grap_alcohol_msg_pub_ = n.advertise<std_msgs::String>("grap_alcohol_msg", 0);
@@ -79,7 +80,7 @@ bool QNode::init() {
 
   get_joint_pose_client_ = n.serviceClient<manipulator_h_base_module_msgs::GetJointPose>("get_joint_pose", 0);
   get_kinematics_pose_client_ = n.serviceClient<manipulator_h_base_module_msgs::GetKinematicsPose>("get_kinematics_pose", 0);
-  joy_calib_client_ = n.serviceClient<manipulator_joystick::JoyCalibration>("/joy_calib", 0);
+  joy_calib_client_ = n.serviceClient<manipulator_h_joystick::JoyCalibration>("/joy_calib", 0);
 
   status_msg_sub_ = n.subscribe("status", 10, &QNode::statusMsgCallback, this);
 
@@ -170,6 +171,13 @@ void QNode::sendP2PPoseMsg( manipulator_h_base_module_msgs::P2PPose msg )
   p2p_pose_msg_pub_.publish( msg );
 
   log( Info , "Send P2P Pose Msg" );
+}
+
+void QNode::sendMoveItPoseMsg( manipulator_h_base_module_msgs::P2PPose msg )
+{
+  moveit_pose_msg_pub_.publish( msg );
+
+  log( Info , "Send MoveIt Pose Msg" );
 }
 
 //========robotiq_2f_gripper=======================
@@ -288,7 +296,7 @@ void QNode::getCurrPose(double (&data)[7])
 
 bool QNode::joyCalib(bool cmd)
 {
-  manipulator_joystick::JoyCalibration _calib_cmd;
+  manipulator_h_joystick::JoyCalibration _calib_cmd;
   _calib_cmd.request.calib_cmd = cmd;
   if( joy_calib_client_.call( _calib_cmd ) )
     return _calib_cmd.response.calib_status;

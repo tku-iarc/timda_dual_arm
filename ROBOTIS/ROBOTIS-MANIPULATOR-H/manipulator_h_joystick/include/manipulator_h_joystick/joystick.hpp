@@ -10,7 +10,7 @@
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <manipulator_h_base_module_msgs/VectorMove.h>
-#include <manipulator_joystick/JoyCalibration.h>
+#include <manipulator_h_joystick/JoyCalibration.h>
 
 class Joystick
 {
@@ -20,8 +20,8 @@ public:
     void init(void);
 
     void joysticMsgCallback(const sensor_msgs::Joy::ConstPtr& msg);
-    bool calibrationCallback(manipulator_joystick::JoyCalibration::Request &req, 
-                             manipulator_joystick::JoyCalibration::Response &res );
+    bool calibrationCallback(manipulator_h_joystick::JoyCalibration::Request &req, 
+                             manipulator_h_joystick::JoyCalibration::Response &res );
     void process(void);
 
     float get_joy_x(void){return joy_x;}

@@ -61,6 +61,12 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 
+#include "moveit_msgs/MoveGroupAction.h"
+
+#include <mutex> 
+#include <thread>    
+#include <condition_variable>  
+
 namespace robotis_manipulator_h
 {
 
@@ -123,6 +129,8 @@ public:
   void p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg);   //new
   void vectorMoveMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg);
   void vectorMoveRpyMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg);
+  void moveitPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg);
+  void moveitClient(std::vector<double> moveit_goal,moveit_msgs::MoveGroupResult &Result);
 
 
   bool getJointPoseCallback(manipulator_h_base_module_msgs::GetJointPose::Request &req,

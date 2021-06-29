@@ -52,7 +52,7 @@
 #include <manipulator_h_base_module_msgs/P2PPose.h>
 #include <manipulator_h_base_module_msgs/GetJointPose.h>
 #include <manipulator_h_base_module_msgs/GetKinematicsPose.h>
-#include <manipulator_joystick/JoyCalibration.h>
+#include <manipulator_h_joystick/JoyCalibration.h>
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 
@@ -104,6 +104,7 @@ public:
     void sendJointPoseMsg(manipulator_h_base_module_msgs::JointPose msg);
     void sendKinematicsPoseMsg(manipulator_h_base_module_msgs::KinematicsPose msg);
     void sendP2PPoseMsg( manipulator_h_base_module_msgs::P2PPose msg );
+    void sendMoveItPoseMsg( manipulator_h_base_module_msgs::P2PPose msg );
     //========robotiq_2f_gripper=========================================
     void sendGrapAlcoholMsg( std_msgs::String msg );
     void sendReleasePoseMsg( std_msgs::String msg );
@@ -139,6 +140,7 @@ private:
     ros::Publisher      joint_pose_msg_pub_;
     ros::Publisher      kinematics_pose_msg_pub_;
     ros::Publisher      p2p_pose_msg_pub_;
+    ros::Publisher      moveit_pose_msg_pub_;
     //robotiq_2f_gripper===========================
     ros::Publisher      grap_alcohol_msg_pub_;
     ros::Publisher      release_pose_msg_pub_;

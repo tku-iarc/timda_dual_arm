@@ -106,7 +106,7 @@
      <!-- <width>524287</width>
      <height>10000</height> -->
      <width>1000</width>
-     <height>600</height>
+     <height>650</height>
     </size>
    </property>
    <property name="allowedAreas">
@@ -385,6 +385,13 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QPushButton" name="des_moveit_button">
+              <property name="text">
+              <string>Send MoveIt Pos.</string>
+              </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -606,7 +613,14 @@
               <string>Initial Pose</string>
               </property>
             </widget>
-            </item>
+           </item>
+           <item>
+            <widget class="QPushButton" name="home_pose_button">
+              <property name="text">
+              <string>Back Home</string>
+              </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -1016,13 +1030,6 @@
          <widget class="QPushButton" name="set_mode_button">
           <property name="text">
            <string>Set Mode</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="home_pose_button">
-          <property name="text">
-           <string>Back Home</string>
           </property>
          </widget>
         </item>

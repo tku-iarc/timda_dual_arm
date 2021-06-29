@@ -26,6 +26,37 @@
 #include "manipulator_h_base_module/base_module.h"
 
 using namespace robotis_manipulator_h;
+
+double diff_curr_goal_now[MAX_JOINT_ID+1] = {0};
+double current_now[MAX_JOINT_ID+1] = {0};
+double vel_now[MAX_JOINT_ID+1] = {0};
+
+double curr_goal_offset[MAX_JOINT_ID+1] = {0};
+double current_offset[MAX_JOINT_ID+1] = {0};
+double vel_offset[MAX_JOINT_ID+1] = {0};
+
+double bias_pos[MAX_JOINT_ID+1] = {0};
+double bias_cur[MAX_JOINT_ID+1] = {0};
+double bias_vel[MAX_JOINT_ID+1] = {0};
+
+int if_hit[MAX_JOINT_ID+1] = {0};
+int detect_hit[MAX_JOINT_ID+1] = {0};
+int timer1 = 0;
+
+//condition_var assignment
+std::mutex mutex; 
+std::condition_variable cv; 
+bool ready = false; 
+bool processed = false; 
+//========collision==========
+float totaltime = 0;
+bool init_var = false;
+double avg_cur[7] = {0};
+double avg_cur1,avg_cur2 = 0;
+std::vector<float> data1_offset(3,0);
+std::vector<float> data2_offset(3,0);
+bool data_latch1,data_latch2 = false;
+
 BaseModule::BaseModule()
   : control_cycle_msec_(0)
 {
@@ -139,6 +170,8 @@ void BaseModule::queueThread()
                                                                &BaseModule::kinematicsPoseMsgCallback, this);
   ros::Subscriber p2p_pose_msg_sub = ros_node.subscribe("p2p_pose_msg", 5,
                                                          &BaseModule::p2pPoseMsgCallback, this);
+  ros::Subscriber moveit_pose_msg_sub = ros_node.subscribe("moveit_pose_msg", 5,
+                                                               &BaseModule::moveitPoseMsgCallback, this);                                                         
   ros::Subscriber vector_move_rpy_msg_sub = ros_node.subscribe("vector_move_rpy_msg", 5,
                                                            &BaseModule::vectorMoveRpyMsgCallback, this);
 
@@ -528,6 +561,193 @@ void BaseModule::jointPoseMsgCallback(const manipulator_h_base_module_msgs::Join
   }
 
   return;
+}
+
+void BaseModule::moveitPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg)
+{
+  moveit_msgs::MoveGroupResult Result;
+  std::vector<double> moveit_goal;
+  if (enable_ == false)
+    return;
+
+  robotis_->p2p_pose_msg_ = *msg;
+
+  robotis_->ik_id_start_ = 0;
+  robotis_->ik_id_end_   = END_LINK;
+
+  Eigen::Vector3d p2p_positoin;
+  Eigen::Matrix3d p2p_rotation;
+
+  int     max_iter    = 30;
+  double  ik_tol      = 1e-3;
+
+  p2p_positoin << robotis_->p2p_pose_msg_.pose.position.x, 
+                  robotis_->p2p_pose_msg_.pose.position.y, 
+                  robotis_->p2p_pose_msg_.pose.position.z;
+
+  Eigen::Quaterniond p2p_quaterniond(robotis_->p2p_pose_msg_.pose.orientation.w,
+                                        robotis_->p2p_pose_msg_.pose.orientation.x,
+                                        robotis_->p2p_pose_msg_.pose.orientation.y,
+                                        robotis_->p2p_pose_msg_.pose.orientation.z);
+
+  double p2p_phi = robotis_->p2p_pose_msg_.phi;
+
+  p2p_rotation = robotis_framework::convertQuaternionToRotation(p2p_quaterniond);
+
+  manipulator_->forwardKinematics(7);
+  // std::cout<<"p2p_positoinp2p_positoin"<<std::endl<<p2p_positoin<<std::endl;
+  // std::cout<<"p2p_rotationp2p_rotation"<<std::endl<<p2p_rotation<<std::endl;
+
+  robotis_->is_ik = true;
+  
+  bool    slide_success = manipulator_->slideInverseKinematics(p2p_positoin, p2p_rotation, 
+                                                            slide_->slide_pos, slide_->goal_slide_pos, true);
+
+  // std::cout<<"<<<<<<<<<<<<<<<<<<<slide_->goal_slide_pos<<<<<<<<<<<<<<<<<"<<std::endl<<slide_->goal_slide_pos<<std::endl;
+  bool    ik_success = manipulator_->inverseKinematics(robotis_->ik_id_end_,
+                                                            p2p_positoin, p2p_rotation, p2p_phi, slide_->goal_slide_pos, true);
+  if (ik_success == true && slide_success == true)
+  {  
+    Eigen::MatrixXd tra_points;
+    if (robotis_->is_moving_ == false)
+    {
+      manipulator_h_base_module_msgs::JointPose p2p_msg;
+      moveit_goal.push_back(slide_->goal_slide_pos);
+      for (int i=1;i<8;i++)
+        moveit_goal.push_back(manipulator_->manipulator_link_data_[i]->joint_angle_);
+      
+      moveitClient(moveit_goal,Result);
+      ROS_INFO("Action Sending Back All Result.");
+      // boost::this_thread::sleep(boost::posix_time::seconds(2)); 
+      int j = 0;
+      int k = Result.planned_trajectory.joint_trajectory.points.size();
+      for ( int id = 1; id <= MAX_JOINT_ID; id++ )
+        p2p_msg.name.push_back(manipulator_->manipulator_link_data_[id]->name_);
+      if (robotis_->is_moving_ == false){
+        for(int i = 0;i<k;i++){
+            for ( int j = 1; j <8; j++ )
+                p2p_msg.value.push_back(Result.planned_trajectory.joint_trajectory.points[i].positions[j]);
+                
+              
+            p2p_msg.slide_pos = Result.planned_trajectory.joint_trajectory.points[i].positions[0];
+            p2p_msg.speed     = robotis_->p2p_pose_msg_.speed;
+            if (i>0)
+              slide_->slide_pos = Result.planned_trajectory.joint_trajectory.points[i-1].positions[0];
+            robotis_->joint_pose_msg_ = p2p_msg;
+            std::cout<<"start_Tra"<<std::endl;
+            tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateJointTrajProcess, this));
+    
+            
+            robotis_->cnt_ = 0;
+            p2p_msg.value.clear();
+            // p2p_msg.slide_pos.clear();
+            std::cout<<"-----------------"<<p2p_msg.slide_pos<<"-----------------"<<std::endl;
+            delete tra_gene_thread_;
+            //condition_var for lock
+            std::unique_lock<std::mutex> lock(mutex);
+            cv.wait(lock, [] {return ready; });
+            lock.unlock();
+            ready = false; 
+        }
+
+      }
+    } 
+    else
+    {
+      ROS_INFO("previous task is alive");
+    }
+    
+  }
+  else
+  {
+    ROS_INFO("[end] send trajectory (ik failed)");
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory (p2p IK Failed)");
+    return;
+  }
+  robotis_->is_ik = false;
+  return;
+  
+}
+
+void BaseModule::moveitClient(std::vector<double> moveit_goal,moveit_msgs::MoveGroupResult &Result){
+
+
+  actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> move_action_client_("/move_group");
+
+  move_action_client_.waitForServer(ros::Duration(30.0));
+  
+  ROS_INFO("Connected to move_action server");
+  
+  for (int i=0;i<8;i++){
+      std::cout<<"======="<<std::setprecision(8)<<moveit_goal[i]<<"=========="<<std::endl;
+    }
+  ROS_INFO("Action server started.");
+  moveit_msgs::MoveGroupGoal goal;
+  moveit_msgs::JointConstraint jc;
+  moveit_msgs::Constraints ct;
+  //moveit_msgs::MoveGroupResult Result;
+
+  goal.request.workspace_parameters.header.frame_id= "world";
+  goal.request.workspace_parameters.min_corner.x= -1;
+  goal.request.workspace_parameters.min_corner.y= -1;
+  goal.request.workspace_parameters.min_corner.z= -1;
+  goal.request.workspace_parameters.max_corner.x=  1;
+  goal.request.workspace_parameters.max_corner.y=  1;
+  goal.request.workspace_parameters.max_corner.z=  1;
+
+  ct.name = " ";
+  goal.request.goal_constraints.push_back(ct);
+  jc.joint_name = "joint_left";
+  jc.position= moveit_goal[0];
+  jc.tolerance_above = 0.0001;
+  jc.tolerance_below = 0.0001;
+  jc.weight= 1;
+  goal.request.goal_constraints[0].joint_constraints.push_back(jc);
+
+  goal.request.group_name = "left_arm";
+  goal.request.num_planning_attempts = 30;
+  goal.request.allowed_planning_time = 10000;
+  goal.request.max_velocity_scaling_factor = 0.01;
+  goal.request. max_acceleration_scaling_factor = 0.01;
+
+
+  goal.request.start_state.is_diff =1;
+  goal.planning_options.planning_scene_diff.robot_state.is_diff =1;
+  for(int i=1;i<8;i++){
+    jc.joint_name = "l_joint_"+std::to_string(i);
+    jc.position= moveit_goal[i];
+    jc.tolerance_above = 0.0001;
+    jc.tolerance_below = 0.0001;
+    jc.weight= 1;
+    goal.request.goal_constraints[0].joint_constraints.push_back(jc);
+    }
+
+  move_action_client_.sendGoalAndWait(goal);
+  ROS_INFO("start send goal to Moveit");
+  bool finished_before_timeout = move_action_client_.waitForResult(ros::Duration(30.0));
+
+  if (finished_before_timeout)                             
+  {
+
+    actionlib::SimpleClientGoalState state = move_action_client_.getState();
+    ROS_INFO("Action finished: %s",state.toString().c_str());
+    Result = *move_action_client_.getResult();
+    return;
+  }
+  else
+  {
+    ROS_ERROR("Failed to call service");
+    return;
+  }
+  ROS_INFO("Action did not finish before the time out.");
+
+  
+  //shutdown the node and join the thread back before exiting
+  //ros::shutdown();
+  //spin_thread.join();
+  
+  return;
+
 }
 
 void BaseModule::generateInitPoseTrajProcess()
