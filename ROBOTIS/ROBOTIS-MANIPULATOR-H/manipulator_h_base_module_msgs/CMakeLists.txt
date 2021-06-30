@@ -26,7 +26,7 @@ add_message_files(
   KinematicsPose.msg
   P2PPose.msg
   SlideCommand.msg
-  vector.msg
+  VectorMove.msg
 
 )
 

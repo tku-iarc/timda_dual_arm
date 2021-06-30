@@ -1,0 +1,5 @@
+bool calib_cmd
+
+---
+
+bool calib_status

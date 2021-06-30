@@ -3,31 +3,37 @@
 <launch>
     <arg name="en_sim" default="false"  />
     <arg name="side"   default="left" />
+    <arg name="arm_type" default="single_arm"/>
     <!-- <arg name="comport"   default="/dev/ttyUSB0" /> -->
 
     <group ns="$(arg side)_arm">
-	  <node name="manipulator_h_manager" pkg="manipulator_h_manager" type="manipulator_h_manager" output="screen">
-              <param name="en_sim"                   value="$(arg en_sim)" />
-              <param name="side"                     value="$(arg side)" />
-              <param name="robot_file_path"          value="$(find manipulator_h_manager)/config/ROBOTIS_$(arg side).robot" />
-              <param name="gazebo_robot_name"        value="mobile_dual_arm" />
-              <param name="offset_table"             value="$(find manipulator_h_manager)/config/offset.yaml" />
-              <param name="init_file_path"           value="$(find manipulator_h_manager)/config/dxl_init.yaml" />
-              <param name="link_file_path"           value="$(find manipulator_h_kinematics_dynamics)/config/link_param_$(arg side).yaml" />
-          </node>
+        <node name="manipulator_h_manager" pkg="manipulator_h_manager" type="manipulator_h_manager" output="screen">
+            <param name="en_sim"                   value="$(arg en_sim)" />
+            <param name="side"                     value="$(arg side)" />
+            <param name="robot_file_path"          value="$(find manipulator_h_manager)/config/ROBOTIS_$(arg side).robot" />
+            <param name="gazebo_robot_name"        value="mobile_dual_arm" />
+            <param name="offset_table"             value="$(find manipulator_h_manager)/config/offset.yaml" />
+            <param name="init_file_path"           value="$(find manipulator_h_manager)/config/dxl_init.yaml" />
+            <param name="link_file_path"           value="$(find manipulator_h_kinematics_dynamics)/config/link_param_$(arg side).yaml" />
+        </node>
 
-          <node pkg="manipulator_h_gui" type="manipulator_h_gui" name="$(arg side)_gui" output="screen">
-                <param name="robot_name"             value="$(arg side)_arm"/>
-          </node>
+        <node pkg="manipulator_h_gui" type="manipulator_h_gui" name="$(arg side)_gui" output="screen">
+            <param name="robot_name"             value="$(arg side)_arm"/>
+        </node>
 
-          <node pkg="linear_motion" type="linear_z" name="slide_$(arg side)" output="screen" unless="$(arg en_sim)">
-                <param name="side"               value="$(arg side)" />
-		<param name="en_sim"                   value="$(arg en_sim)" />
-          </node>
-
-          <!-- <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="$(arg side)_Gripper" output="screen" >
+        <node pkg="linear_motion" type="linear_z" name="slide_$(arg side)" output="screen" unless="$(arg en_sim)">
+            <param name="side"               value="$(arg side)" />
+            <param name="en_sim"                   value="$(arg en_sim)" />
+        </node>
+        <node pkg="joy" type="joy_node" name="dual_arm_joy" output="screen" if="$(eval arm_type == 'single_arm')">
+            <param name="joy_node/dev" value="/dev/input/js0"/>
+        </node>
+        <node pkg="manipulator_h_joystick" type="manipulator_h_joystick_node" name="joy_control" 
+              output="screen" if="$(eval arm_type == 'single_arm')">
+            <param name="side" value="both"/>
+        </node>
+        <!-- <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="$(arg side)_Gripper" output="screen" >
             <param name="comport" value="$(arg comport)"/>
-          </node> -->
-
+        </node> -->
     </group>
 </launch>

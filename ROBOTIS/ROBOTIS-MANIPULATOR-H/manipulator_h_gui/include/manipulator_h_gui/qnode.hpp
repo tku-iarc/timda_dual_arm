@@ -50,10 +50,9 @@
 #include <manipulator_h_base_module_msgs/JointPose.h>
 #include <manipulator_h_base_module_msgs/KinematicsPose.h>
 #include <manipulator_h_base_module_msgs/P2PPose.h>
-
-
 #include <manipulator_h_base_module_msgs/GetJointPose.h>
 #include <manipulator_h_base_module_msgs/GetKinematicsPose.h>
+#include <manipulator_h_joystick/JoyCalibration.h>
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 
@@ -99,18 +98,20 @@ public:
     void log(const LogLevel &level, const std::string &msg, std::string sender = "GUI");
     void statusMsgCallback(const robotis_controller_msgs::StatusMsg::ConstPtr &msg);
 
-    void sendIniPoseMsg(std_msgs::String msg);
+    void sendSpecificPoseMsg(std_msgs::String msg);
     void sendSetModeMsg(std_msgs::String msg);
 
     void sendJointPoseMsg(manipulator_h_base_module_msgs::JointPose msg);
     void sendKinematicsPoseMsg(manipulator_h_base_module_msgs::KinematicsPose msg);
     void sendP2PPoseMsg( manipulator_h_base_module_msgs::P2PPose msg );
+    void sendMoveItPoseMsg( manipulator_h_base_module_msgs::P2PPose msg );
     //========robotiq_2f_gripper=========================================
     void sendGrapAlcoholMsg( std_msgs::String msg );
     void sendReleasePoseMsg( std_msgs::String msg );
     //=====================================================================
     void getCurrPose(double (&data)[7]);
     inline QString getName(){return self_name_;}
+    bool joyCalib(bool cmd);
 
 
 public Q_SLOTS:
@@ -133,18 +134,20 @@ private:
     ros::Publisher      chatter_publisher_;
     QStringListModel    logging_model_;
 
-    ros::Publisher      ini_pose_msg_pub_;
+    ros::Publisher      specific_pose_msg_pub_;
     ros::Publisher      set_mode_msg_pub_;
 
     ros::Publisher      joint_pose_msg_pub_;
     ros::Publisher      kinematics_pose_msg_pub_;
     ros::Publisher      p2p_pose_msg_pub_;
+    ros::Publisher      moveit_pose_msg_pub_;
     //robotiq_2f_gripper===========================
     ros::Publisher      grap_alcohol_msg_pub_;
     ros::Publisher      release_pose_msg_pub_;
     //==============================================
     ros::ServiceClient  get_joint_pose_client_;
     ros::ServiceClient  get_kinematics_pose_client_;
+    ros::ServiceClient  joy_calib_client_;
 
     ros::Subscriber     status_msg_sub_;
 
