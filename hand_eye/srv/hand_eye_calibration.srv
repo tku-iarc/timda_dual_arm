@@ -2,6 +2,6 @@ string                  cmd
 geometry_msgs/Transform end_trans
 
 ---
-bool                    is_done
+bool                  is_done
 float64[]             end2cam_trans
 

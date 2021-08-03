@@ -1,28 +1,28 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import os
 import time
 import numpy as np
 import rospy
+import rospkg
 import tf
 import ConfigParser
 import enum
 import argparse
-import queue
+import Queue as queue
 import copy
 #import Hiwin_RT605_Socket_test_andy as ArmTask
-from control_node import HiwinRobotInterface
 from hand_eye.srv import hand_eye_calibration, hand_eye_calibrationRequest
+from manipulator_h_base_module_msgs.srv import GetKinematicsPose
 from geometry_msgs.msg import Transform
-from math import radians, degrees, pi
-from std_msgs.msg import String, Bool
-from std_msgs.msg import Bool, Int32
 from arm_control import DualArmTask
 from arm_control import ArmTask, SuctionTask, Command, Status
+from enum import IntEnum
 
 
-c_pose = {'left' :[[[0.38,  0.2, 0.15],  [0.0, 65, 0.0]],
-                    [[0.38,  0.2, -0.25],  [0.0, 65, 0.0]],
-                    [[0.38,  0.2, -0.65],    [0.0, 65, 0.0]]],
+
+c_pose = {'left' :[[[0.38,  0.21, 0.15],  [0.0, 65, 0.0]],
+                    [[0.38,  0.2, 0.15],  [0.0, 65, 0.0]],
+                    [[0.38,  0.19, 0.15],    [0.0, 65, 0.0]]],
           'right':[[[0.38, -0.2, 0.15],  [0.0, 65, 0.0]],
                     [[0.38, -0.2, -0.25],  [0.0, 65, 0.0]],
                     [[0.38, -0.2, -0.65],    [0.0, 65, 0.0]]],
@@ -47,18 +47,6 @@ class CameraCalib:
         self.en_sim = en_sim
         self.dual_arm = DualArmTask(self.name, self.en_sim)
 
-    def get_curr_pos(self, side):
-        pose = get_feedback(side)
-        res = np.array([])
-        res = np.append(res, pose.group_pose.position.x)
-        res = np.append(res, pose.group_pose.position.y)
-        res = np.append(res, pose.group_pose.position.z)
-        res = np.append(res, pose.group_pose.orientation.x)
-        res = np.append(res, pose.group_pose.orientation.y)
-        res = np.append(res, pose.group_pose.orientation.z)
-        res = np.append(res, pose.group_pose.orientation.w)
-        return res
-
     def hand_eye_client(self, req):
         rospy.wait_for_service('/camera/hand_eye_calibration')
         try:
@@ -68,6 +56,18 @@ class CameraCalib:
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
 
+    def get_feedback(self, side):
+        rospy.wait_for_service(side + '_arm/get_kinematics_pose')
+        try:
+            get_endpos = rospy.ServiceProxy(
+                side + '_arm/get_kinematics_pose',
+                GetKinematicsPose
+            )
+            res = get_endpos('arm')
+            return res
+        except rospy.ServiceException as e:
+            print ("Service call failed: %s" % e)
+
     def state_control(self, state, side):
         if state is None:
             state = State.init
@@ -76,12 +76,13 @@ class CameraCalib:
         elif state == State.move:
             state = State.take_pic
         elif state == State.take_pic:
-            if self.is_done:
+            if self.is_done[side]:
                 state = State.finish
             else:
                 state = State.move
         elif state == State.finish:
             state = None
+        return state
 
     def strategy(self, state, side):
         cmd = Command()
@@ -89,47 +90,54 @@ class CameraCalib:
         if state == State.init:
             cmd['cmd'] = 'jointMove'
             cmd['jpos'] = [0, 0, -1.2, 0, 1.87, 0, -0.87, 0]
-            cmd['state'] = State.init
+            cmd['state'] = state
             cmd['speed'] = 40
             cmd_queue.put(copy.deepcopy(cmd))
             self.dual_arm.send_cmd(side, False, cmd_queue)
+            print('state init')
 
         elif state == State.move: 
-            cmd['suc_cmd'] = 'Off'
             cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             cmd['state'] = state
             cmd_queue.put(copy.deepcopy(cmd))
             side = self.dual_arm.send_cmd(side, False, cmd_queue)
             if side != 'fail':
-                c_pose[side+'_indx'] += 1
+                c_pose[side+'_indx'] = c_pose[side+'_indx'] + 1 if c_pose[side+'_indx'] < 2 else 0
             else:
-                print('fuckfailfuckfailfuckfail')
+                print('fuckfailfuckfailfuckfail    ', cmd)
+            print('state move')
             
         elif state == State.take_pic:
+            print('state take_pic start')
             time.sleep(0.2)
-            pose = get_feedback(side)
+            cmd['cmd'], cmd['state'] = None, state
+            cmd_queue.put(copy.deepcopy(cmd))
+            self.dual_arm.send_cmd(side, True, cmd_queue)
+            arm_feedback = self.get_feedback(side)
             req = hand_eye_calibrationRequest()
-            req.end_trans.translation.x = pose.group_pose.position.x
-            req.end_trans.translation.y = pose.group_pose.position.y
-            req.end_trans.translation.z = pose.group_pose.position.z
-            req.end_trans.rotation.x    = pose.group_pose.orientation.x
-            req.end_trans.rotation.y    = pose.group_pose.orientation.y
-            req.end_trans.rotation.z    = pose.group_pose.orientation.z
-            req.end_trans.rotation.w    = pose.group_pose.orientation.w
+            req.end_trans.translation.x = arm_feedback.group_pose.position.x
+            req.end_trans.translation.y = arm_feedback.group_pose.position.y
+            req.end_trans.translation.z = arm_feedback.group_pose.position.z
+            req.end_trans.rotation.x    = arm_feedback.group_pose.orientation.x
+            req.end_trans.rotation.y    = arm_feedback.group_pose.orientation.y
+            req.end_trans.rotation.z    = arm_feedback.group_pose.orientation.z
+            req.end_trans.rotation.w    = arm_feedback.group_pose.orientation.w
             res = self.hand_eye_client(req)
             if res.is_done:
                 self.is_done[side] = True
                 trans_mat = np.array(res.end2cam_trans).reshape(4,4)
-                camera_mat = np.array(res.camera_mat).reshape(4, 4)
+                # camera_mat = np.array(res.camera_mat).reshape(4, 4)
                 print('##################################################################')
                 print(trans_mat)
                 print('##################################################################')
                 config = ConfigParser.ConfigParser()
                 config.optionxform = str  #reference: http://docs.python.org/library/configparser.html
-                curr_path = os.path.dirname(os.path.abspath(__file__))
+                # curr_path = os.path.dirname(os.path.abspath(__file__))
                 # config.read(['img_trans_pinto.ini', curr_path])
-                config.read(curr_path + '/img_trans.ini')
+                rospack = rospkg.RosPack()
+                curr_path = rospack.get_path('hand_eye')
+                config.read(curr_path + '/comfig/img_trans.ini')
                 
                 config.set("External", "Key_1_1", str(trans_mat[0][0]))
                 config.set("External", "Key_1_2", str(trans_mat[0][1]))
@@ -144,15 +152,17 @@ class CameraCalib:
                 config.set("External", "Key_3_3", str(trans_mat[2][2]))
                 config.set("External", "Key_3_4", str(trans_mat[2][3]))
 
-                config.set("Internal", "Key_1_1", str(camera_mat[0][0]))
-                config.set("Internal", "Key_1_2", str(camera_mat[0][1]))
-                config.set("Internal", "Key_1_3", str(camera_mat[0][2]))
-                config.set("Internal", "Key_2_1", str(camera_mat[1][0]))
-                config.set("Internal", "Key_2_2", str(camera_mat[1][1]))
-                config.set("Internal", "Key_2_3", str(camera_mat[1][2]))
-                config.set("Internal", "Key_3_1", str(camera_mat[2][0]))
-                config.set("Internal", "Key_3_2", str(camera_mat[2][1]))
-                config.set("Internal", "Key_3_3", str(camera_mat[2][2]))
+                # config.set("Internal", "Key_1_1", str(camera_mat[0][0]))
+                # config.set("Internal", "Key_1_2", str(camera_mat[0][1]))
+                # config.set("Internal", "Key_1_3", str(camera_mat[0][2]))
+                # config.set("Internal", "Key_2_1", str(camera_mat[1][0]))
+                # config.set("Internal", "Key_2_2", str(camera_mat[1][1]))
+                # config.set("Internal", "Key_2_3", str(camera_mat[1][2]))
+                # config.set("Internal", "Key_3_1", str(camera_mat[2][0]))
+                # config.set("Internal", "Key_3_2", str(camera_mat[2][1]))
+                # config.set("Internal", "Key_3_3", str(camera_mat[2][2]))
+
+            print('state take_pic end')
 
         elif state == State.finish:
             cmd['suc_cmd'] = 'Off'
@@ -161,23 +171,27 @@ class CameraCalib:
             cmd['state'] = State.finish
             cmd_queue.put(copy.deepcopy(cmd))
             self.dual_arm.send_cmd(side, False, cmd_queue)
+            print('state take_pic finish')
 
     def process(self, side):
         rate = rospy.Rate(10)
         rospy.on_shutdown(self.dual_arm.shutdown)
+        l_state = None
+        r_state = None
+        l_status = None
+        r_status = None 
         while True:
             if side == 'left':
                 l_status = self.dual_arm.left_arm.status
                 if l_status == Status.idle or l_status == Status.occupied:
                     l_state = self.state_control(self.dual_arm.left_arm.state, 'left')
                     self.strategy(l_state, 'left')
-                rate.sleep()
             else:
                 r_status = self.dual_arm.right_arm.status
                 if r_status == Status.idle or r_status == Status.occupied:
                     r_state = self.state_control(self.dual_arm.right_arm.state, 'right')
                     self.strategy(r_state, 'right')
-                rate.sleep()
+            rate.sleep()
             if l_state is None and r_state is None:
                 if l_status == Status.idle and r_status == Status.idle:
                     return
@@ -185,7 +199,7 @@ class CameraCalib:
 if __name__ == '__main__':
     rospy.init_node('calibration_')
     side = 'left'
-    strtage = CameraCalib('dual_arm', False)
+    strategy = CameraCalib('dual_arm', False)
     rospy.on_shutdown(strategy.dual_arm.shutdown)
     strategy.process(side)
     strategy.dual_arm.shutdown()

@@ -10,7 +10,7 @@ import numpy as np
 from geometry_msgs.msg import Vector3, Quaternion, Transform, TransformStamped
 from visp_hand2eye_calibration.msg import TransformArray
 from visp_hand2eye_calibration.srv import compute_effector_camera_quick
-from aruco_hand_eye.srv import aruco_info, aruco_infoRequest, hand_eye_calibration, hand_eye_calibrationResponse
+from hand_eye.srv import aruco_info, aruco_infoRequest, hand_eye_calibration, hand_eye_calibrationResponse
 
 class HandEyeConnector(object):
     def __init__(self):
@@ -136,10 +136,10 @@ class HandEyeConnector(object):
         print(R)
         return R
 
-    def aruco_cb(self, end_trans):
+    def aruco_cb(self, req):
         res = hand_eye_calibrationResponse()
-        ar_marker = self.aruco_tracker(end_trans.cmd)
-        if end_trans.cmd == 'hello':
+        ar_marker = self.aruco_tracker(req.cmd)
+        if req.cmd == 'hello':
             self.caculate = True
         if ar_marker.rvecs is not None:
             r = cv2.Rodrigues(ar_marker.rvecs)[0]
@@ -165,22 +165,9 @@ class HandEyeConnector(object):
             # Get the camera optical frame for convenience
             optical_frame_id = msg.header.frame_id
     
-            # try:
-            #     # Get the transform between the marker and camera frames (from FK)
-            #     self.listener.waitForTransform(
-            #         self.marker_parent_frame_id, self.camera_parent_frame_id,
-            #         msg.header.stamp, rospy.Duration(0.1))
-    
-            #     (trans,rot) = self.listener.lookupTransform(
-            #         self.marker_parent_frame_id, self.camera_parent_frame_id,
-            #         msg.header.stamp)
-            # except tf.Exception as ex:
-            #     rospy.logwarn(str(ex))
-            #     return
-    
             # Update data
             self.hand_world_samples.header.frame_id = 'ee'#optical_frame_id
-            self.hand_world_samples.transforms.append(end_trans.end_trans)
+            self.hand_world_samples.transforms.append(req.end_trans)
     
             self.camera_marker_samples.header.frame_id = 'cc'#optical_frame_id
             self.camera_marker_samples.transforms.append(msg.transform)

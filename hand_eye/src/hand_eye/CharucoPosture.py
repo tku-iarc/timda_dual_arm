@@ -15,7 +15,7 @@ import cv2
 import cv2.aruco as aruco
 import os
 import pickle
-from aruco_hand_eye.srv import aruco_info, aruco_infoResponse
+from hand_eye.srv import aruco_info, aruco_infoResponse
 import time
 import pyrealsense2 as rs
 NUMBER = 5
@@ -35,8 +35,6 @@ CHARUCO_BOARD = aruco.CharucoBoard_create(
         squaresY=CHARUCOBOARD_ROWCOUNT,
         squareLength=0.0359,
         markerLength=0.0244,
-        # squareLength=0.04,
-        # markerLength=0.02,
         dictionary=ARUCO_DICT)
 
 
@@ -75,52 +73,12 @@ class CharucoBoardPosture():
         # self.distCoeffs = np.array([k_1, k_2, p_1, p_2, k_3])
         self.distCoeffs = np.array([0.0, 0, 0, 0, 0])
 
-        
-        # self.cameraMatrix = np.array([[1.38726465e+03, 0.00000000e+00, 9.67009977e+02], #pinto
-        #                               [0.00000000e+00, 1.39067726e+03, 5.44111718e+02],
-        #                               [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
-        # self.distCoeffs = np.array([ 0.1772611,  -0.57056992, -0.0008356,   0.00099024,  0.52153116])
-
-        # dist_coef = np.array([0, 0, 0, 0, 0])
-        # self.cameraMatrix = np.array([[906.10541873,   0.0,          643.12531806],
-                                    #   [0.0,            904.68643316, 359.79710938],
-                                    #   [0.0,            0.0,          1.0         ]])
-        # self.distCoeffs = np.array([1.53041876e-01, -4.08438606e-01,  1.53722452e-03, -3.95946669e-04, 2.56666605e-01])
-        # if not os.path.exists('/home/iclab/wrs_ws/src/aruco_hand_eye/cfg/calibration.pckl'):
-        #     print("You need to calibrate the camera you'll be using. See calibration project directory for details.")
-        #     self.cameraMatrix = [[603.00869939,   0.0,          318.46049727],
-        #                          [0.0,            601.50770586, 251.87010006],
-        #                          [0.0,            0.0,          1.0         ]]
-        #     self.distCoeffs = [[7.59282092e-02,  2.21483627e-01,  1.41152268e-03, -4.71388619e-04, -1.18482976e+00]]
-
-        #     #exit()
-        # else:
-        #     f = open('/home/iclab/wrs_ws/src/aruco_hand_eye/cfg/calibration.pckl', 'rb')
-        #     (self.cameraMatrix, self.distCoeffs, _, _) = pickle.load(f)
-        #     f.close()
-        #     if self.cameraMatrix is None or self.distCoeffs is None:
-        #         print("Calibration issue. Remove ./calibration.pckl and recalibrate your camera with CalibrateCamera.py.")
-        #         exit()
-        #     print(self.cameraMatrix)
-        #     print('               ')
-        #     print(self.distCoeffs)
-
-        # Create grid board object we're using in our stream
-        # board = aruco.GridBoard_create(
-        #         markersX=2,
-        #         markersY=2,
-        #         markerLength=0.09,
-        #         markerSeparation=0.01,
-        #         dictionary=ARUCO_DICT)
-
         # Create vectors we'll be using for rotations and translations for postures
         self.rvecs = None 
         self.tvecs = None
         self.rvecs_arr = np.zeros((3, NUMBER))
         self.tvecs_arr = np.zeros((3, NUMBER))
-        # cam = cv2.VideoCapture('gridboardiphonetest.mp4')
-        # self.cam_left = cv2.VideoCapture(5)
-        # self.cam_right = cv2.VideoCapture(10)
+
         self.cam = None
         self.QueryImg = None
         self.init_server()
@@ -177,8 +135,6 @@ class CharucoBoardPosture():
                             cameraMatrix=self.cameraMatrix, 
                             distCoeffs=self.distCoeffs)
                             
-                    # self.rvecs, self.tvecs = aruco.estimatePoseSingleMarkers(corners, self.markersize, self.cameraMatrix, self.distCoeffs)
-                    # for _id, rvec, tvec in zip(ids, self.rvecs, self.tvecs):
                     if pose:
                         if order == 0:
                             print("=============================================")
@@ -234,10 +190,6 @@ class CharucoBoardPosture():
             r_avg[i] = np.average(rv)
             t_avg[i] = np.average(tv)
         
-        # print('[_id, r,t] = ', [_id, r,t])
-        # res.ids.append(_id)
-        # res.rvecs = np.append(res.rvecs, r_avg)
-        # res.tvecs = np.append(res.tvecs, t_avg)
         res.rvecs = r_avg
         res.tvecs = t_avg
         print('res.rvecs is ', res.rvecs)
@@ -255,19 +207,9 @@ class CharucoBoardPosture():
             filename = curr_path + "/pic/camera-pic-of-charucoboard-" +  str(int(self.frameId)) + ".jpg"
             cv2.imwrite(filename, self.QueryImg)
             self.frameId += 1
-            # cv2.imwrite('./123%d.jpg'%self.cnd, self.QueryImg)
-            # self.cnd += 1
-            # cv2.namedWindow('Amanda', cv2.WINDOW_AUTOSIZE)
-            # self.QueryImg = cv2.imread('./123%d.jpg'%self.cnd)
-            # cv2.imshow('Amanda', self.QueryImg)
-            # cv2.waitKey(1000)
-            # cv2.destroyAllWindows()
 
-            # time.sleep(2)
             print('------')
-            # while not cv2.waitKey(1) & 0xFF == ord('q'):
-            #     pass
-            # cv2.destroyAllWindows()
+
         return res
             
 if __name__ == '__main__':
@@ -293,11 +235,5 @@ if __name__ == '__main__':
     rospy.spin()
     cv2.destroyAllWindows()
     del mp
-    # while True:
-    #     result = mp.findCharucoBoard()
-    #     print(result)
-    #     print(cv2.Rodrigues(result[0][1])[0])
-    #     # print('==========================')
-    #     if cv2.waitKey(0) & 0xFF == ord('q'):
-    #         break
+
     

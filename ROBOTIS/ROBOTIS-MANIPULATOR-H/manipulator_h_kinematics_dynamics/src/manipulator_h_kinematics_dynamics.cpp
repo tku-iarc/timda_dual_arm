@@ -443,6 +443,7 @@ bool ManipulatorKinematicsDynamics::inverseKinematics_test(Eigen::MatrixXd tar_p
   Old_JointAngle << 0,0,0,0,0,0,0,0;
 
   ik_success = InverseKinematics_7(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, true, false);
+  // ik_success = InverseKinematics_p2p(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, true);
 
   int joint_num;
   std::vector<int> idx = findRoute(8);
@@ -773,7 +774,6 @@ bool ManipulatorKinematicsDynamics::InverseKinematics_p2p( Eigen::VectorXd goal_
 bool ManipulatorKinematicsDynamics::InverseKinematics_7( Eigen::VectorXd goal_position, Eigen::Matrix3d rotation, 
                                                             double Phi, double slide_position, Eigen::VectorXd Old_JointAngle, bool is_p2p, bool is_run)
 {
-  std::cout<<"goal_position: "<<goal_position<<std::endl;
   bool ik_success = false;
 
   int isMatch;
@@ -814,7 +814,8 @@ bool ManipulatorKinematicsDynamics::InverseKinematics_7( Eigen::VectorXd goal_po
  
   Oc << goal_position(0)-d4*R07(0,2), goal_position(1)-d4*R07(1,2), goal_position(2)-d4*R07(2,2);
 
-  DHTABLE_IK(0,2) = slide_position;       
+  DHTABLE_IK(0,2) = slide_position;
+  DHTABLE(0,2) = slide_position;     
           
   ////////////////////////////////////////////////////////////////////////////////////////////////
 

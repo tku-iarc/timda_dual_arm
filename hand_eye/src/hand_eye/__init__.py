@@ -1,6 +1,7 @@
-#!/usr/bin/env python3
-from hand_eye import HandEyeTrans
+#!/usr/bin/env python
+from hand_eye.hand_eye_trans import HandEyeTrans
 # from .hand_eye_connector import HandEyeConnector
 # from .MarkerPosture import MarkerPosture
-from hand_eye import HandEyeConnector
-from hand_eye import MarkerPosture
+from hand_eye.hand_eye_connector import HandEyeConnector
+from hand_eye.MarkerPosture import MarkerPosture
+from hand_eye.CharucoPosture import CharucoBoardPosture
