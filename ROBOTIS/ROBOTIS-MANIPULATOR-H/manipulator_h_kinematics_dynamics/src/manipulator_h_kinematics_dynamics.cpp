@@ -777,7 +777,7 @@ bool ManipulatorKinematicsDynamics::InverseKinematics_7( Eigen::VectorXd goal_po
   bool ik_success = false;
 
   int isMatch;
-  double theta_e, modify_euler_theta;
+  double theta_e, modify_euler_theta, tmp_slide_position;
   double theta_1, theta_2, theta_3, theta_4, theta_5, theta_6, theta_7;
   double Deviation, D_Joint_1, D_Joint_2, D_Joint_1_2, D_Joint_2_2;
   double Lsw, Lec, Lsc;
@@ -813,9 +813,9 @@ bool ManipulatorKinematicsDynamics::InverseKinematics_7( Eigen::VectorXd goal_po
   R07.block(0,0,3,3) = rotation*Modify_euler;
  
   Oc << goal_position(0)-d4*R07(0,2), goal_position(1)-d4*R07(1,2), goal_position(2)-d4*R07(2,2);
-
-  DHTABLE_IK(0,2) = slide_position;
-  DHTABLE(0,2) = slide_position;     
+  tmp_slide_position = DHTABLE(0,2);
+  DHTABLE(0,2) = slide_position;    
+  DHTABLE_IK(0,2) = slide_position; 
           
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1121,6 +1121,7 @@ bool ManipulatorKinematicsDynamics::InverseKinematics_7( Eigen::VectorXd goal_po
       manipulator_link_data_[id]->joint_angle_test = JointAngle.coeff(id);
   }
   /////////////////////////////////////////////////////////////////////////////////////////////////
+  DHTABLE(0,2) = tmp_slide_position;
   return ik_success;
 }
 

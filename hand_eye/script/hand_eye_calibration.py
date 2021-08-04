@@ -137,7 +137,7 @@ class CameraCalib:
                 # config.read(['img_trans_pinto.ini', curr_path])
                 rospack = rospkg.RosPack()
                 curr_path = rospack.get_path('hand_eye')
-                config.read(curr_path + '/comfig/img_trans.ini')
+                config.read(curr_path + '/config/img_trans.ini')
                 
                 config.set("External", "Key_1_1", str(trans_mat[0][0]))
                 config.set("External", "Key_1_2", str(trans_mat[0][1]))
@@ -151,16 +151,6 @@ class CameraCalib:
                 config.set("External", "Key_3_2", str(trans_mat[2][1]))
                 config.set("External", "Key_3_3", str(trans_mat[2][2]))
                 config.set("External", "Key_3_4", str(trans_mat[2][3]))
-
-                # config.set("Internal", "Key_1_1", str(camera_mat[0][0]))
-                # config.set("Internal", "Key_1_2", str(camera_mat[0][1]))
-                # config.set("Internal", "Key_1_3", str(camera_mat[0][2]))
-                # config.set("Internal", "Key_2_1", str(camera_mat[1][0]))
-                # config.set("Internal", "Key_2_2", str(camera_mat[1][1]))
-                # config.set("Internal", "Key_2_3", str(camera_mat[1][2]))
-                # config.set("Internal", "Key_3_1", str(camera_mat[2][0]))
-                # config.set("Internal", "Key_3_2", str(camera_mat[2][1]))
-                # config.set("Internal", "Key_3_3", str(camera_mat[2][2]))
 
             print('state take_pic end')
 
@@ -197,9 +187,10 @@ class CameraCalib:
                     return
 
 if __name__ == '__main__':
-    rospy.init_node('calibration_')
-    side = 'left'
-    strategy = CameraCalib('dual_arm', False)
+    rospy.init_node('hand_eye_calibration_')
+    en_sim = rospy.get_param('~en_sim')
+    side = rospy.get_param('~side')
+    strategy = CameraCalib('dual_arm', en_sim)
     rospy.on_shutdown(strategy.dual_arm.shutdown)
     strategy.process(side)
     strategy.dual_arm.shutdown()

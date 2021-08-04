@@ -8,13 +8,14 @@
 #
 # Requires camera calibration (see the rest of the project for example calibration)
 
-import rospy
+import rospy, rospkg
 import std_msgs, std_srvs
 import numpy as np
 import cv2
 import cv2.aruco as aruco
 import os
 import pickle
+import ConfigParser
 from hand_eye.srv import aruco_info, aruco_infoResponse
 import time
 import pyrealsense2 as rs
@@ -46,30 +47,53 @@ class CharucoBoardPosture():
         self.cnd = 0
         self.frameId = 0
         self.pipeline = rs.pipeline()
-        config = rs.config()
-        config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-        config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
+        rs_config = rs.config()
+        rs_config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+        rs_config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
 
-        self.pipeline.start(config)
+        self.pipeline.start(rs_config)
         # Check for camera calibration data
-        c_x = 643.47548083
-        c_y = 363.67742746
-        f_x = 906.60886808
-        f_y = 909.34831447
-        k_1 = 0.16962942
-        k_2 = -0.5560001
-        p_1 = 0.00116353
-        p_2 = -0.00122694
-        k_3 = 0.52491878
 
-        c_x = 649.007507324219
-        c_y = 356.122222900391
-        f_x = 922.76806640625
-        f_y = 923.262023925781
+        config = ConfigParser.ConfigParser()
+        config.optionxform = str
+        rospack = rospkg.RosPack()
+        curr_path = rospack.get_path('hand_eye')
+        config.read(curr_path + '/config/img_trans.ini')
+        # curr_path = os.path.dirname(os.path.abspath(__file__))
+        # config = ConfigParser.ConfigParser()
+        # path = curr_path + '\..\config\img_trans.ini'
+        # config.read(path)
+        b00 = float(config.get("Internal", "Key_1_1"))
+        b01 = float(config.get("Internal", "Key_1_2"))
+        b02 = float(config.get("Internal", "Key_1_3"))
+        b10 = float(config.get("Internal", "Key_2_1"))
+        b11 = float(config.get("Internal", "Key_2_2"))
+        b12 = float(config.get("Internal", "Key_2_3"))
+        b20 = float(config.get("Internal", "Key_3_1"))
+        b21 = float(config.get("Internal", "Key_3_2"))
+        b22 = float(config.get("Internal", "Key_3_3"))
+
+        self.cameraMatrix = np.mat([[b00, b01, b02],
+                                    [b10, b11, b12],
+                                    [b20, b21, b22]])
+        # c_x = 643.47548083
+        # c_y = 363.67742746
+        # f_x = 906.60886808
+        # f_y = 909.34831447
+        # k_1 = 0.16962942
+        # k_2 = -0.5560001
+        # p_1 = 0.00116353
+        # p_2 = -0.00122694
+        # k_3 = 0.52491878
+
+        # c_x = 649.007507324219
+        # c_y = 356.122222900391
+        # f_x = 922.76806640625
+        # f_y = 923.262023925781
     
-        self.cameraMatrix = np.array([[f_x, 0, c_x],
-                               [0, f_y, c_y],
-                               [0, 0, 1]])
+        # self.cameraMatrix = np.array([[f_x, 0, c_x],
+        #                        [0, f_y, c_y],
+        #                        [0, 0, 1]])
         # self.distCoeffs = np.array([k_1, k_2, p_1, p_2, k_3])
         self.distCoeffs = np.array([0.0, 0, 0, 0, 0])
 
