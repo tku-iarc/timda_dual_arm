@@ -57,8 +57,8 @@ class CharucoBoardPosture():
         config = ConfigParser.ConfigParser()
         config.optionxform = str
         rospack = rospkg.RosPack()
-        curr_path = rospack.get_path('hand_eye')
-        config.read(curr_path + '/config/img_trans.ini')
+        self.curr_path = rospack.get_path('hand_eye')
+        config.read(self.curr_path + '/config/img_trans.ini')
         # curr_path = os.path.dirname(os.path.abspath(__file__))
         # config = ConfigParser.ConfigParser()
         # path = curr_path + '\..\config\img_trans.ini'
@@ -158,7 +158,6 @@ class CharucoBoardPosture():
                             board=CHARUCO_BOARD, 
                             cameraMatrix=self.cameraMatrix, 
                             distCoeffs=self.distCoeffs)
-                            
                     if pose:
                         if order == 0:
                             print("=============================================")
@@ -227,8 +226,8 @@ class CharucoBoardPosture():
             # Outline all of the markers detected in our image
             self.QueryImg = aruco.drawDetectedMarkers(self.QueryImg, corners, borderColor=(0, 0, 255))
             self.QueryImg = aruco.drawAxis(self.QueryImg, self.cameraMatrix, self.distCoeffs, result[0], result[1], 0.02)
-            curr_path = os.path.dirname(os.path.abspath(__file__))
-            filename = curr_path + "/pic/camera-pic-of-charucoboard-" +  str(int(self.frameId)) + ".jpg"
+            # self.curr_path = os.path.dirname(os.path.abspath(__file__))
+            filename = self.curr_path + "/pic/camera-pic-of-charucoboard-" +  str(int(self.frameId)) + ".jpg"
             cv2.imwrite(filename, self.QueryImg)
             self.frameId += 1
 

@@ -10,5 +10,5 @@
 */slide_control.cpp
 
 CATKIN_IGNORE
-ROBOTIS/ROBOTIS-MANIPULATOR-H/manipulator_h_gui/log/left_arm_pose_log.yaml
-ROBOTIS/ROBOTIS-MANIPULATOR-H/manipulator_h_gui/log/right_arm_pose_log.yaml
+ROBOTIS/ROBOTIS-MANIPULATOR-H/manipulator_h_gui/log/*
+hand_eye/pic/*

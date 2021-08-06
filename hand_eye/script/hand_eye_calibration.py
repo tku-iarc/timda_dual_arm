@@ -22,10 +22,16 @@ from enum import IntEnum
 
 c_pose = {'left' :[[[0.38,  0.21, 0.15],  [0.0, 65, 0.0]],
                     [[0.38,  0.2, 0.15],  [0.0, 65, 0.0]],
+                    [[0.38,  0.19, 0.15],    [0.0, 65, 0.0]],
+                    [[0.38,  0.21, 0.15],  [0.0, 65, 0.0]],
+                    [[0.38,  0.2, 0.15],  [0.0, 65, 0.0]],
                     [[0.38,  0.19, 0.15],    [0.0, 65, 0.0]]],
-          'right':[[[0.38, -0.2, 0.15],  [0.0, 65, 0.0]],
-                    [[0.38, -0.2, -0.25],  [0.0, 65, 0.0]],
-                    [[0.38, -0.2, -0.65],    [0.0, 65, 0.0]]],
+          'right':[[[0.36, -0.21, 0.14],  [-10.0, 62, 0.0]],
+                    [[0.38, -0.22, 0.13],  [-5.0, 63, 0.0]],
+                    [[0.40, -0.23, 0.12],    [0.0, 64, 0.0]],
+                    [[0.42, -0.20, 0.11],  [5.0, 65, 0.0]],
+                    [[0.40, -0.24, 0.10],  [10.0, 66, 0.0]],
+                    [[0.38, -0.22, 0.09],    [15.0, 67, 0.0]]],
           'left_indx' : 0, 'right_indx' : 0}
 
 class Arm_status(enum.IntEnum):
@@ -103,7 +109,7 @@ class CameraCalib:
             cmd_queue.put(copy.deepcopy(cmd))
             side = self.dual_arm.send_cmd(side, False, cmd_queue)
             if side != 'fail':
-                c_pose[side+'_indx'] = c_pose[side+'_indx'] + 1 if c_pose[side+'_indx'] < 2 else 0
+                c_pose[side+'_indx'] = c_pose[side+'_indx'] + 1 if c_pose[side+'_indx'] < 5 else 0
             else:
                 print('fuckfailfuckfailfuckfail    ', cmd)
             print('state move')
