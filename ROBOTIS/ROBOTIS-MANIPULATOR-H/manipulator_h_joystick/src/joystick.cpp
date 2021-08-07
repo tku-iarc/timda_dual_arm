@@ -201,6 +201,9 @@ void Joystick::process(void)
                 float x = (joy_x > 0) ? joy_x/max_x : -1*joy_x/min_x;
                 float y = (joy_y > 0) ? joy_y/max_y : -1*joy_y/min_y;
                 float z = (joy_z > 0) ? joy_z/max_z : -1*joy_z/min_z;
+                x = (fabs(x) > 0.2) ? x : 0;
+                y = (fabs(y) > 0.2) ? y : 0;
+                z = (fabs(z) > 0.2) ? z : 0;
                 moving_msg.moving_vector = {x, y, z, joy_roll, joy_pitch, joy_yaw, joy_phi};
                 for(int indx = 0; indx <= 6; indx++)
                 {

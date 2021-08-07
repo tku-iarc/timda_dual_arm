@@ -177,7 +177,7 @@ class HandEyeConnector(object):
             res.is_done = False
             return res
 
-        n_min = 6
+        n_min = 25
         # n_min = 10
         
         if len(self.hand_world_samples.transforms) < n_min and self.caculate == False:
