@@ -35,7 +35,6 @@ right_c_pose = [[[0.5004538080655432, -0.2532141209025338,  -0.06718596221420141
                 [[0.4791931993168074, -0.3149709612270601,  -0.1314791281837705,  ],[ 44.22395960243066,   77.62795426419487, -0.2457129339789655,  ], -0],
                 [[0.4138575366293342, -0.297527484295576,   -0.2126739825191691,  ],[ 60.58006338433427,   66.3474808736441,  -11.95869213814548,   ], -0],
                 [[0.4139939455668695, -0.2975475105725396,  -0.2852077107466298,  ],[ 75.32258426252123,   66.34753499853126, -11.96455947827606,   ], -0],
-                [[0.4150670666849816, -0.1869936299130128,  -0.2502419682154568,  ],[ 75.35022004524998,   66.35272986913353, -24.84222954560206,   ], -14.96376032128839],
                 [[0.4121825233908999, -0.319210126629863,   -0.2530958086474356,  ],[ 74.79920625273058,   66.64329176528997, -6.085190075340546,   ], -15.71553991053553],
                 [[0.4123827640796597, -0.3193150560478027,  -0.1468756819758649,  ],[ 74.790731418693,     66.64335354449192, -6.107679999675296,   ], -15.72096225956446],
                 [[0.4147377995611876, -0.4293097186830637,  -0.1907875458258219,  ],[ 75.18244454404424,   96.58401763743851,  11.45644267135307,   ],  16.56934230738585],
@@ -130,7 +129,10 @@ class CameraCalib:
             cmd_queue.put(copy.deepcopy(cmd))
             side = self.dual_arm.send_cmd(side, False, cmd_queue)
             if side != 'fail':
-                c_pose[side+'_indx'] = c_pose[side+'_indx'] + 1 if c_pose[side+'_indx'] < len(c_pose[side]) else 0
+                c_pose[side+'_indx'] = c_pose[side+'_indx'] + 1
+                if c_pose[side+'_indx'] == len(c_pose[side]):
+                    self.is_done[side] = True
+                    c_pose[side+'_indx'] = 0
             else:
                 print('fuckfailfuckfailfuckfail    ', cmd)
             print('state move')
@@ -143,6 +145,7 @@ class CameraCalib:
             self.dual_arm.send_cmd(side, True, cmd_queue)
             arm_feedback = self.get_feedback(side)
             req = hand_eye_calibrationRequest()
+            req.is_done = self.is_done[side]
             req.end_trans.translation.x = arm_feedback.group_pose.position.x
             req.end_trans.translation.y = arm_feedback.group_pose.position.y
             req.end_trans.translation.z = arm_feedback.group_pose.position.z
@@ -151,8 +154,7 @@ class CameraCalib:
             req.end_trans.rotation.z    = arm_feedback.group_pose.orientation.z
             req.end_trans.rotation.w    = arm_feedback.group_pose.orientation.w
             res = self.hand_eye_client(req)
-            if res.is_done:
-                self.is_done[side] = True
+            if self.is_done[side]:
                 trans_mat = np.array(res.end2cam_trans).reshape(4,4)
                 # camera_mat = np.array(res.camera_mat).reshape(4, 4)
                 print('##################################################################')

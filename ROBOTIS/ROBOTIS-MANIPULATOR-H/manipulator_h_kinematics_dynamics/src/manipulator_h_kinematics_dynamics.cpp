@@ -305,7 +305,7 @@ void ManipulatorKinematicsDynamics::forwardKinematics(int joint_ID)
   for ( int i=0; i<=joint_ID; i++ )
   {
     DH_row = DHTABLE.row(i);
-    A = Trans(manipulator_link_data_[i]->joint_angle_, DH_row);
+    A = transform(manipulator_link_data_[i]->joint_angle_, DH_row);
 
     T = T*A;
     manipulator_link_data_[i+1]->position_ = T.block(0,3,3,1);
@@ -397,7 +397,7 @@ bool ManipulatorKinematicsDynamics::inverseKinematics(int to, Eigen::MatrixXd ta
     Old_JointAngle[idx[id]] = manipulator_link_data_[idx[id]]->joint_angle_;
   }
 
-  ik_success = InverseKinematics_p2p(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, is_p2p);
+  ik_success = inverseKinematics_(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, is_p2p);
 
   forwardKinematics(7);
   
@@ -442,8 +442,8 @@ bool ManipulatorKinematicsDynamics::inverseKinematics_test(Eigen::MatrixXd tar_p
   
   Old_JointAngle << 0,0,0,0,0,0,0,0;
 
-  ik_success = InverseKinematics_7(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, true, false);
-  // ik_success = InverseKinematics_p2p(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, true);
+  // ik_success = inverseKinematics_old(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, true, false);
+  ik_success = inverseKinematics_(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, true, false);
 
   int joint_num;
   std::vector<int> idx = findRoute(8);
@@ -477,7 +477,7 @@ bool ManipulatorKinematicsDynamics::inverseKinematics_test(Eigen::MatrixXd tar_p
     return false;
 }
 
-Eigen::MatrixXd ManipulatorKinematicsDynamics::Trans( double &Theta, Eigen::VectorXd &DH )
+Eigen::MatrixXd ManipulatorKinematicsDynamics::transform( double &Theta, Eigen::VectorXd &DH )
 {
   double c_th = cos(Theta + DH(3));
   double s_th = sin(Theta + DH(3));
@@ -499,14 +499,14 @@ Eigen::Vector3d ManipulatorKinematicsDynamics::forwardKinematics_7(int joint_ID,
   for ( int i=0; i<=joint_ID; i++ )
   {
     DH_row = DHTABLE.row(i);
-    A = Trans(angle(i), DH_row);
+    A = transform(angle(i), DH_row);
     T = T*A;
   }
   return T.block(0,3,3,1);
 }
 
-bool ManipulatorKinematicsDynamics::InverseKinematics_p2p( Eigen::VectorXd goal_position, Eigen::Matrix3d rotation, 
-                                                            double Phi, double slide_position, Eigen::VectorXd Old_JointAngle, bool is_p2p)
+bool ManipulatorKinematicsDynamics::inverseKinematics_( Eigen::VectorXd goal_position, Eigen::Matrix3d rotation, double Phi, 
+                                                           double slide_position, Eigen::VectorXd Old_JointAngle, bool is_p2p, bool is_run)
 {
   bool ik_success = false;
   manipulator_link_data_[0]->singularity_ = false;
@@ -572,7 +572,7 @@ bool ManipulatorKinematicsDynamics::InverseKinematics_p2p( Eigen::VectorXd goal_
   for ( int i=0; i<5; i++ )
   {
     DH_row = DH.row(i);
-    A = Trans( Angle(i), DH_row );
+    A = transform( Angle(i), DH_row );
     T = T*A;
   }
   R03 = T;
@@ -581,7 +581,7 @@ bool ManipulatorKinematicsDynamics::InverseKinematics_p2p( Eigen::VectorXd goal_
   theta_4 = M_PI - acos((Lse*Lse + Lew*Lew - Lsw*Lsw) / (2*Lse*Lew)) + atan(a1/d2) + atan(a2/d3);
   
   DH_row = DHTABLE.row(4);
-  A = Trans(theta_4, DH_row);   
+  A = transform(theta_4, DH_row);   
   R04 = R03 * A;
 
   theta_1 = atan((-RL_prm *R03(0,1)) / -R03(2,1));
@@ -761,17 +761,22 @@ bool ManipulatorKinematicsDynamics::InverseKinematics_p2p( Eigen::VectorXd goal_
     else
       manipulator_link_data_[0]->singularity_ = false;
   }
-  if(ik_success)
+  if(ik_success && is_run)
   {
     manipulator_link_data_[END_LINK]->phi_ = Phi;
     manipulator_link_data_[0]->slide_position_ = slide_position;
     for (int id = 0; id <= MAX_JOINT_ID; id++)
       manipulator_link_data_[id]->joint_angle_ = JointAngle.coeff(id);
   }
+  else if(ik_success && !is_run)
+  {
+    for (int id = 0; id <= MAX_JOINT_ID; id++)
+      manipulator_link_data_[id]->joint_angle_test = JointAngle.coeff(id);
+  }
   return ik_success;
 }
 
-bool ManipulatorKinematicsDynamics::InverseKinematics_7( Eigen::VectorXd goal_position, Eigen::Matrix3d rotation, 
+bool ManipulatorKinematicsDynamics::inverseKinematics_old( Eigen::VectorXd goal_position, Eigen::Matrix3d rotation, 
                                                             double Phi, double slide_position, Eigen::VectorXd Old_JointAngle, bool is_p2p, bool is_run)
 {
   bool ik_success = false;
@@ -845,7 +850,7 @@ bool ManipulatorKinematicsDynamics::InverseKinematics_7( Eigen::VectorXd goal_po
   for ( int i=0; i<5; i++ )
   {
     DH_row = DH.row(i);
-    A = Trans( Angle(i), DH_row );
+    A = transform( Angle(i), DH_row );
     T = T*A;
   }
   R03 = T;
@@ -854,7 +859,7 @@ bool ManipulatorKinematicsDynamics::InverseKinematics_7( Eigen::VectorXd goal_po
   theta_4 = M_PI - acos((Lse*Lse + Lew*Lew - Lsw*Lsw) / (2*Lse*Lew)) + atan(a1/d2) + atan(a2/d3);
   
   DH_row = DHTABLE_IK.row(4);
-  A = Trans(theta_4, DH_row);   
+  A = transform(theta_4, DH_row);   
   R04 = R03 * A;
 
   JointAngle << 0, 0, 0, 0, 0, 0, 0, 0;
@@ -1342,7 +1347,7 @@ void ManipulatorKinematicsDynamics::getPhiAngle()
   for ( int i=0; i<5; i++ )
   {
     DH_row = DH.row(i);
-    A = Trans( Angle(i), DH_row );
+    A = transform( Angle(i), DH_row );
     T = T*A;
     if(i==2)
       test_T = T; 
@@ -1370,7 +1375,7 @@ void ManipulatorKinematicsDynamics::getPhiAngle()
       for ( int i=3; i<5; i++ )
       {
         DH_row = DH.row(i);
-        A = Trans( Angle(i), DH_row );
+        A = transform( Angle(i), DH_row );
         T = T*A;
       }
       Eigen::Vector3d elbow_test = T.block(0,3,3,1);
