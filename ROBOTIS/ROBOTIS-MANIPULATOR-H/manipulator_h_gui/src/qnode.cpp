@@ -248,20 +248,28 @@ void QNode::getKinematicsPose ( std::string group_name )
   // response
   if ( get_kinematics_pose_client_.call( _get_kinematics_pose ) )
   {
-    // manipulator_h_base_module_msgs::KinematicsPose _kinematcis_pose;
+    double pos[3] = {_get_kinematics_pose.response.group_pose.position.x,
+                     _get_kinematics_pose.response.group_pose.position.y,
+                     _get_kinematics_pose.response.group_pose.position.z};
+    double ori[3] = {_get_kinematics_pose.response.euler[0] * RADIAN2DEGREE,
+                     _get_kinematics_pose.response.euler[1] * RADIAN2DEGREE,
+                     _get_kinematics_pose.response.euler[2] * RADIAN2DEGREE};
+    double phi = _get_kinematics_pose.response.phi * RADIAN2DEGREE;
+    for(int i=0; i<3; i++)
+    {
+      pos[i] = std::round(pos[i]/0.001) * 0.001;
+      ori[i] = std::round(ori[i]/0.001) * 0.001;
+    }
+    pose_log << YAML::Flow << YAML::BeginSeq;
 
-    // _kinematcis_pose.name = _get_kinematics_pose.request.group_name;
-    // _kinematcis_pose.pose = _get_kinematics_pose.response.group_pose;
-    // _kinematcis_pose.phi  = _get_kinematics_pose.response.phi;
-  
-    pose_log << YAML::Flow<< YAML::BeginSeq;
-    pose_log << _get_kinematics_pose.response.group_pose.position.x;
-    pose_log << _get_kinematics_pose.response.group_pose.position.y;
-    pose_log << _get_kinematics_pose.response.group_pose.position.z;
-    pose_log << _get_kinematics_pose.response.euler[0] * RADIAN2DEGREE;
-    pose_log << _get_kinematics_pose.response.euler[1] * RADIAN2DEGREE;
-    pose_log << _get_kinematics_pose.response.euler[2] * RADIAN2DEGREE;
-    pose_log << _get_kinematics_pose.response.phi * RADIAN2DEGREE;
+    pose_log << YAML::BeginSeq;
+    for(int i=0; i<3; i++)
+      pose_log << std::round(pos[i]/0.001) * 0.001;
+    pose_log << YAML::EndSeq << YAML::BeginSeq;
+    for(int i=0; i<3; i++)
+      pose_log << std::round(ori[i]/0.001) * 0.001;
+    pose_log << YAML::EndSeq;
+    pose_log << std::round(phi/0.001) * 0.001;
     pose_log << YAML::EndSeq;
     
     Q_EMIT updateCurrentKinematicsPose( _get_kinematics_pose );
