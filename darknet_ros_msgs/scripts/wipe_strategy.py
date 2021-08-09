@@ -22,33 +22,66 @@ from math import radians, degrees, sin, cos, pi
 #                     [[0.38, -0.2, -0.25],  [0.0, 65, 0.0]],
 #                     [[0.38, -0.2, -0.65],    [0.0, 65, 0.0]]],
 #           'left_indx' : 0, 'right_indx' : 0}
+#-0.20
+#0.1363 
+#-0.38000
+#44.024
+#-0.005
+#-44.998
+#[-0.1100, 0.2363, -0.6000], [44.024, -0.005, -44.998]
+#[-0.1100, 0.1363, -0.7000], [44.024, -0.005, -44.998]
 
-c_pose = {'left' :[[[-0.20, 0.1363, -0.38000],  [44.024, -0.005, -44.998]],
-                    [[-0.20, 0.0363, -0.47500],  [44.024, -0.005, -44.998]],
-                    [[-0.20, 0.0363, -0.47500],  [44.024, -0.005, -44.998]],
-                    [[0.00, 0.2363, -0.47500],  [44.024, -0.005, -44.998]],
-                    [[0.20, 0.0363, -0.47500],  [44.024, -0.005, -44.998]],
-                    [[0.20, 0.0363, -0.47500],  [44.024, -0.005, -44.998]],
-                    [[0.30, 0.0363, -0.47500],  [44.024, -0.005, -44.998]],
-                    [[0.30, 0.0363, -0.47500],  [44.024, -0.005, -44.998]],
-                    [[0.30, 0.0363, -0.47500],  [44.024, -0.005, -44.998]],
+#rag gripper 160
+#[x,y,z],[-45,45,0]
+# c_pose = {'left' :[[[-0.1000, 0.2363, -0.600],  [44.024, -0.005, -44.998]],
+#                     [[-0.1000, 0.1313, -0.6800],  [44.024, -0.005, -44.998]],
+#                     [[-0.1000, 0.1313, -0.6800],  [44.024, -0.005, -44.998]],
+#                     [[-0.1000, 0.3363, -0.6000],  [44.024, -0.005, -44.998]],
+#                     [[0.20, 0.3363, -0.5000],  [0.000, 0.000, 0.000]],
+#                     [[0.20, 0.2363, -0.7000],  [44.024, -0.005, -44.998]],
+#                     [[0.30, 0.2363, -0.7000],  [44.024, -0.005, -44.998]],
+#                     [[0.30, 0.2363, -0.7000],  [44.024, -0.005, -44.998]],
+#                     [[0.30, 0.2363, -0.7000],  [44.024, -0.005, -44.998]],
+#                     [[0.1807, 0.4337, -0.6569],  [19.196, 0.427, -0.086]],
+#                     [[-0.20, 0.0363, -0.47500],  [44.024, -0.005, -44.998]]],
+#           'right':[[[-0.30, -0.2463, -0.6500],  [0.000, 0.000, 0.000]],
+#                     [[-0.30, -0.2463, -0.7500],  [0.000, 0.000, 0.000]],
+#                     [[-0.30, -0.2463, -0.7500],  [0.000, 0.000, 0.000]],
+#                     [[0.00, -0.3463, -0.47500],  [0.000, 0.000, 0.000]],
+#                     [[0.30, -0.2463, -0.7500],  [0.000, 0.000, 0.000]],
+#                     [[0.15, -0.2463, -0.7500],  [0.000, 0.000, 0.000]],
+#                     [[0.30, -0.0463, -0.7500],  [0.000, 0.000, 0.000]],
+#                     [[0.30, -0.2463, -0.7500],  [0.000, 0.000, 0.000]],
+#                     [[0.15, -0.0463, -0.7500],  [0.000, 0.000, 0.000]],
+#                     [[0.20, -0.2463, -0.7500],  [0.000, 0.000, 0.000]],
+#                     [[0.20, -0.0463, -0.7500],  [0.000, 0.000, 0.000]],
+#                     [[0.10, -0.4463, -0.6500],  [0.000, 0.000, 0.000]]],
+#           'left_indx' : 0, 'right_indx' : 0}
+
+c_pose = {'left' :[[[-0.1250, 0.2363, -0.600],  [-44.024, -0.005, -44.998]],
+                    [[-0.1250, 0.1323, -0.6730],  [-44.024, -0.005, -44.998]],
+                    [[-0.1250, 0.1323, -0.6730],  [-44.024, -0.005, -44.998]],
+                    [[-0.1250, 0.1323, -0.6000],  [-44.024, -0.005, -44.998]],
+                    [[0.20, 0.3363, -0.5000],  [-90.000, 0.000, 0.000]],
+                    [[0.20, 0.2363, -0.5000],  [-90.000, 0.000, 0.000]],
+                    [[0.30, 0.2363, -0.5000],  [-90.000, 0.000, 0.000]],
+                    [[0.30, 0.2363, -0.5000],  [-90.000, 0.000, 0.000]],
+                    [[0.30, 0.2363, -0.5000],  [-90.000, 0.000, 0.000]],
                     [[0.1807, 0.4337, -0.6569],  [19.196, 0.427, -0.086]],
-                    [[-0.20, 0.0363, -0.47500],  [44.024, -0.005, -44.998]]],
-          'right':[[[-0.16, -0.2863, -0.6500],  [-44.024, 0.005, 4.498]],
-                    [[-0.16, -0.1820, -0.7600],  [-44.024, 0.005, 4.498]],
-                    [[-0.16, -0.1820, -0.7600],  [-44.024, 0.005, 4.498]],
-                    [[-0.16, -0.1820, -0.47500],  [-44.024, 0.005, 4.498]],
-                    [[0.60, -0.1820, -0.35500],  [46.024, 20.005, 4.998]],
-                    [[0.20, -0.1820, -0.47500],  [46.024, 20.005, 4.998]],
-                    [[0.50, 0.1063, -0.35500],  [46.024, 20.005, 4.998]],
-                    [[0.20, 0.1063, -0.47500],  [46.024, 20.005, 4.998]],
-                    [[0.20, -0.2463, -0.35500], [46.024, 20.005, 4.998]],
-                    [[-0.16, -0.1820, -0.6500],  [-42.024, 0.005, 4.498]],
-                    [[-0.16, -0.1820, -0.7600],  [-42.024, 0.005, 4.498]],
-                    [[-0.16, -0.1820, -0.7600],  [-42.024, 0.005, 4.498]],
-                    [[-0.16, -0.2820, -0.6000],  [-42.024, 0.005, 4.498]]],
+                    [[-0.1250, 0.1323, -0.6000],  [-44.024, -0.005, -44.998]]],
+          'right':[[[-0.30, -0.2463, -0.600],  [0.000, 0.000, 0.000]],
+                    [[-0.30, -0.2463, -0.700],  [0.000, 0.000, 0.000]],
+                    [[-0.30, -0.2463, -0.700],  [0.000, 0.000, 0.000]],
+                    [[0.00, -0.3463, -0.4700],  [0.000, 0.000, 0.000]],
+                    [[0.30, -0.2463, -0.700],  [0.000, 0.000, 0.000]],
+                    [[0.15, -0.2463, -0.700],  [0.000, 0.000, 0.000]],
+                    [[0.30, -0.0463, -0.700],  [0.000, 0.000, 0.000]],
+                    [[0.30, -0.2463, -0.700],  [0.000, 0.000, 0.000]],
+                    [[0.15, -0.0463, -0.700],  [0.000, 0.000, 0.000]],
+                    [[0.20, -0.2463, -0.700],  [0.000, 0.000, 0.000]],
+                    [[0.20, -0.0463, -0.700],  [0.000, 0.000, 0.000]],
+                    [[0.10, -0.4463, -0.600],  [0.000, 0.000, 0.000]]],
           'left_indx' : 0, 'right_indx' : 0}
-
 # place_pose = [[[-0.38,  0, -0.796],[0.0, 0.0, 0.0]],
 #               [[-0.38,  0, -0.796],[0.0, 0.0, 0.0]],
 #               [[-0.43,  0, -0.796],[0.0, 0.0, 0.0]],                             
@@ -76,7 +109,7 @@ class ObjInfo(dict):
     def __init__(self):
         self['id']      = 0
         self['side_id'] = 'front'         # 'front', 'back', 'side'
-        self['name']    = 'scratcher' # 'plum_riceball', 'salmon_riceball', 'sandwich', 'burger', 'drink', 'lunch_box'
+        self['name']    = 'alcohol' # 'plum_riceball', 'salmon_riceball', 'sandwich', 'burger', 'drink', 'lunch_box'
         self['state']   = 'new'           # 'new', 'old', 'expired'
         self['pos']     = None
         self['euler']   = None
@@ -89,17 +122,19 @@ class State(IntEnum):
     grap_obj        = 3
     move_to_clean   = 4
     arrive_clean    = 5
-    scratch         = 6
+    wipe            = 6
     finish          = 7
     safety_back     = 8
     finish_init     = 9
    
-class ScratchTask:
+class WipeTask:
     def __init__(self, _name, en_sim):
         self.name = _name
         self.en_sim = en_sim
         self.state = State.init
+        print("1")
         self.dual_arm = DualArmTask(self.name, self.en_sim)
+        print("2")
         # self.camara = GetObjInfo()
         self.left_cpose_queue = queue.Queue()
         self.right_cpose_queue = queue.Queue()
@@ -116,6 +151,7 @@ class ScratchTask:
         self.obj_done = np.zeros((100), dtype=bool)
         self.obj_retry = np.zeros((100), dtype=bool)
         self.next_level = {'left': False, 'right': False}
+        print("3")
         #self.init()
     
     # def init(self):
@@ -168,6 +204,7 @@ class ScratchTask:
         if state is None:
             state = State.init
         elif state == State.init:
+            print("8")
             state = State.apporach_obj
 
         elif state == State.apporach_obj:
@@ -205,14 +242,14 @@ class ScratchTask:
             if side == 'left':
                 state = State.move_to_clean
             else:
-                state = State.scratch
+                state = State.wipe
 
-        elif state == State.scratch:
+        elif state == State.wipe:
             print(c_pose[side+'_indx'])
-            if c_pose[side+'_indx'] >= 11:
+            if c_pose[side+'_indx'] >= 10:
                 state = State.finish
             else:
-                    state = State.scratch
+                state = State.wipe
 
         elif state == State.finish:
             state = State.safety_back
@@ -227,23 +264,23 @@ class ScratchTask:
      
     def strategy(self, state, side):
         print("strategy", state)
+        print("5")
         cmd = Command()
         cmd_queue = queue.Queue()
         if state == State.init:
+            print("6")
             cmd['cmd'] = 'jointMove'
             cmd['gripper_cmd'] = 'active'
-            cmd['jpos'] = [0, 0, 0, 0, 0, 0, 0, 0]
+            #cmd['cmd'] = 'occupied'
+            cmd['jpos'] = [0, 0, 0, 0, 0, 0, 0, 1]
             cmd['state'] = State.init
             cmd['speed'] = 20
             cmd_queue.put(copy.deepcopy(cmd))
-            self.dual_arm.send_cmd(side, True, cmd_queue)
+            self.dual_arm.send_cmd(side, False, cmd_queue)
+            print("YOYO")
             
         elif state == State.apporach_obj:
-            cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
-            # if side == 'left':
-            #     cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
-            # else:
-            #     cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
+            cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             cmd_queue.put(copy.deepcopy(cmd))
             # cmd['cmd'] = 'occupied'
@@ -274,9 +311,9 @@ class ScratchTask:
             cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             if side == 'left':
-                cmd['gripper_cmd'] = 'grap_scratcher'
-            if side == 'right':
-                cmd['gripper_cmd'] = 'grap_scratcher'
+                cmd['gripper_cmd'] = 'grap_alcohol'
+            else:
+                cmd['gripper_cmd'] = 'grap_rag'
             cmd['state'] =  State.grap_obj
             cmd_queue.put(copy.deepcopy(cmd))
             self.dual_arm.send_cmd(side, False, cmd_queue)
@@ -286,14 +323,15 @@ class ScratchTask:
                 print('fuckfailfuckfailfuckfail')  
 
         elif state == State.move_to_clean:
-            cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
+            cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             cmd_queue.put(copy.deepcopy(cmd))
             # cmd['cmd'] = 'occupied'
-            # if side == 'left':
-            #     cmd['gripper_cmd'] = 'grap_alcohol'
-            # else:
-            #     cmd['gripper_cmd'] = 'grap_rag'
+            if side == 'left':
+                cmd['gripper_cmd'] = 'grap_alcohol'
+            else:
+                #cmd['suc_cmd'] = 40
+                cmd['gripper_cmd'] = 'grap_rag'
             cmd['state'] = State.move_to_clean
             cmd_queue.put(copy.deepcopy(cmd))
             side = self.dual_arm.send_cmd(side, False, cmd_queue)
@@ -304,14 +342,14 @@ class ScratchTask:
 
 
         elif state == State.arrive_clean:
-            cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
+            cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             #print(c_pose[side][c_pose[side+'_indx']][0])
             cmd_queue.put(copy.deepcopy(cmd))
             #cmd['suc_cmd'] = 0
             # cmd['cmd'] = 'occupied'
-            # if side == 'left':
-            #     cmd['gripper_cmd'] = 'squeeze'
+            if side == 'left':
+                cmd['gripper_cmd'] = 'squeeze'
             cmd['state'] = State.arrive_clean
             cmd_queue.put(copy.deepcopy(cmd))
             side = self.dual_arm.send_cmd(side, False, cmd_queue)
@@ -320,11 +358,11 @@ class ScratchTask:
             else:
                 print('fuckfailfuckfailfuckfail')   
 
-        elif state == State.scratch:
+        elif state == State.wipe:
             #cmd['cmd'] = 'occupied'
             cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
-            cmd['state'] = State.scratch
+            cmd['state'] = State.wipe
             cmd_queue.put(copy.deepcopy(cmd))
             self.dual_arm.send_cmd(side, False, cmd_queue)
             if side != 'fail':
@@ -333,11 +371,10 @@ class ScratchTask:
                 print('fuckfailfuckfailfuckfail')  
 
         elif state == State.finish:
-            cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
+            cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             cmd_queue.put(copy.deepcopy(cmd))
             # cmd['cmd'] = 'occupied'
-            cmd['gripper_cmd'] = 'open'
             cmd['state'] = State.finish
             cmd_queue.put(copy.deepcopy(cmd))
             side = self.dual_arm.send_cmd(side, False, cmd_queue)
@@ -347,7 +384,7 @@ class ScratchTask:
                 print('fuckfailfuckfailfuckfail')   
 
         elif state == State.safety_back:
-            cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
+            cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             cmd_queue.put(copy.deepcopy(cmd))
             # cmd['cmd'] = 'occupied'
@@ -360,51 +397,49 @@ class ScratchTask:
             else:
                 print('fuckfailfuckfailfuckfail')   
 
-            # cmd['cmd'] = 'jointMove'
-            # cmd['gripper_cmd'] = 'open'
-            # cmd['jpos'] = [0, 0, 0, 0, 0, 0, 0, 0]
-            # cmd['state'] = State.safety_back
-            # cmd_queue.put(copy.deepcopy(cmd))
-            # self.dual_arm.send_cmd(side, False, cmd_queue)
-
         elif state == State.finish_init:
             cmd['cmd'] = 'jointMove'
             cmd['gripper_cmd'] = 'reset'
             cmd['jpos'] = [0, 0, 0, 0, 0, 0, 0, 0]
             cmd['state'] = State.finish_init
+            #cmd['suc_cmd'] = 'Off'
             cmd_queue.put(copy.deepcopy(cmd))
             self.dual_arm.send_cmd(side, False, cmd_queue)
+        print("7")
         return side
 
     def process(self):
         rate = rospy.Rate(10)
         rospy.on_shutdown(self.dual_arm.shutdown)
         while True:
-            # l_status = self.dual_arm.left_arm.status
-            # if l_status == Status.idle or l_status == Status.occupied:
-            #     l_state = self.state_control(self.dual_arm.left_arm.state, 'left')
-            #     self.strategy(l_state, 'left')
-            # rate.sleep()
+            #print("8")
+            l_status = self.dual_arm.left_arm.status
+            # print(l_status)
+            if l_status == Status.idle or l_status == Status.occupied:
+                l_state = self.state_control(self.dual_arm.left_arm.state, 'left')
+                self.strategy(l_state, 'left')
+            rate.sleep()
             #==============================================================================
             r_status = self.dual_arm.right_arm.status
             if r_status == Status.idle or r_status == Status.occupied:
                 r_state = self.state_control(self.dual_arm.right_arm.state, 'right')
                 self.strategy(r_state, 'right')
-            # rate.sleep()
-            # if l_state is None and r_state is None:
-            #     if l_status == Status.idle and r_status == Status.idle:
-            #         return
+            rate.sleep()
+            if l_state is None and r_state is None:
+                if l_status == Status.idle and r_status == Status.idle:
+                    return
             # if l_state is None :
             #     if l_status == Status.idle:
             #         return
-            if r_state is None :
-                if r_status == Status.idle:
-                    return
+            #if r_state is None :
+                #if r_status == Status.idle:
+                    #return
 if __name__ == '__main__':
-    rospy.init_node('scratch')
+    rospy.init_node('wiped')
 
-    strategy = ScratchTask('dual_arm', False)
+    strategy = WipeTask('dual_arm', False)
     rospy.on_shutdown(strategy.dual_arm.shutdown)
+    print("4")
     strategy.process()
     strategy.dual_arm.shutdown()
     del strategy.dual_arm

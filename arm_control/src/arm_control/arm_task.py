@@ -621,7 +621,7 @@ class ArmTask:
                 elif 'grap_alcohol' in cmd['gripper_cmd']:
                     #self.gripper.gripper_setting(255, 150)
                     #print('-------------gggg------------')
-                    self.gripper.gripper_pos(40)
+                    self.gripper.gripper_pos(58)
                 elif 'grap_bottle' in cmd['gripper_cmd']:
                     #self.gripper.gripper_setting(255, 150)
                     #print('-------------gggg------------')
@@ -635,6 +635,9 @@ class ArmTask:
                 elif 'grap_scratcher' in cmd['gripper_cmd']:
                     #self.gripper.gripper_setting(255, 150)
                     self.gripper.gripper_pos(200)
+                elif 'grap_pose_point' in cmd['gripper_cmd']:
+                    #self.gripper.gripper_setting(255, 150)
+                    self.gripper.gripper_pos(210)
         # print("is_busy ", self.is_busy, "occupied ", self.occupied, "cmd_queue.empty() ", self.__cmd_queue.empty(), "cmd_queue_2nd.empty() ",self.__cmd_queue_2nd.empty())
         if not self.is_busy and not self.occupied:
             if self.__cmd_queue.empty() and self.__cmd_queue_2nd.empty():

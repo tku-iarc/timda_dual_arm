@@ -15,6 +15,7 @@ from get_image_info import GetObjInfo
 from math import radians, degrees, sin, cos, pi
 
 from strategy.srv import plot_position
+from strategy.msg import QueSignal,TargetValue
 
 global point_transformed, z_angel
 point_transformed = []
@@ -26,7 +27,10 @@ def callback(data):
     im_data = data
 
 def transformation(x, y, z):
-    rotation_mat = np.array([[np.cos(15*np.pi/18), 0., np.sin(15*np.pi/18),-0.10],[0., 1, 0, 0.06],[-np.sin(15*np.pi/18), 0., np.cos(15*np.pi/18), -0.21],[0.,0.,0.,1.]])#rotate 30-degree around x-axis
+    rotation_mat = np.array([[np.cos(15*np.pi/180), 0., np.sin(15*np.pi/180),-0.068],
+                            [0., 1, 0, 0.08],
+                            [-np.sin(15*np.pi/180), 0., np.cos(15*np.pi/180), 0.062],
+                            [0.,0.,0.,1.]])#rotate 15-degree around x-axis
     # transfar_mat = np.array([[-0.14], [0.], [-0.21]])#[base-center to camera-center, 0, hieght]
     point = [[],[],[]]
     for i in range(3):
@@ -36,8 +40,9 @@ def transformation(x, y, z):
     return point
 
 def add_two_ints_client():
-    global point_transformed
+    global point_transformed, z_angel
     print("go")
+    # rospy.init_node('get_plot_pose')
     rospy.wait_for_service('show_figure')
     try:
         add_two_ints = rospy.ServiceProxy('show_figure', plot_position)
@@ -52,11 +57,11 @@ def add_two_ints_client():
                 if i%3 == 1: y.append(resp1.object[i])
                 if i%3 == 2: z.append(resp1.object[i])
             z_angel = resp1.angle
-        fig = plt.figure()
-        ax = plt.axes(projection='3d')
-        ax.plot3D(x[0], y[0], z[0])
-        ax.scatter3D(x[1:],y[1:],z[1:])
-        plt.show()
+        # fig = plt.figure()
+        # ax = plt.axes(projection='3d')
+        # ax.plot3D(x[0], y[0], z[0])
+        # ax.scatter3D(x[1:],y[1:],z[1:])
+        # plt.show()
 
         point_transformed = transformation(x[0],y[0],z[0])
         # print(point_transformed)
@@ -64,7 +69,54 @@ def add_two_ints_client():
         return True
     except rospy.ServiceException as e:
         print("Service call failed: %s"%e)
+"""
+def add_two_ints_client():
+    global point_transformed
+    print("go")
+    # rospy.init_node('get_plot_pose')
+    # rospy.wait_for_service('show_figure')
+    
+    try:
+        pub = rospy.Publisher('receive_figure', QueSignal, queue_size=10)
+        rate = rospy.Rate(5) # 10hz
+        # done = QueSignal()
+        while not rospy.is_shutdown():
+            done = 0
+            pub.publish(done)
+            rate.sleep()
+            pub.publish(done)
+            rate.sleep()
+            pub.publish(done)
+            rate.sleep()
+        return True
+    except rospy.ServiceException as e:
+        print("Service call failed: %s"%e)
+def receive_pose_data(data):
+    global point_transformed
+    try:
+        x,y,z = [],[],[]
+        if data.is_done == True:
+            x = [[data.head_minimum_z[0], data.pointing_minimum_z[0], data.target[0]]]
+            y = [[data.head_minimum_z[1], data.pointing_minimum_z[1], data.target[1]]]
+            z = [[data.head_minimum_z[2], data.pointing_minimum_z[2], data.target[2]]]
+            for i in range(len(data.object)):
+                if i%3 == 0: x.append(data.object[i])
+                if i%3 == 1: y.append(data.object[i])
+                if i%3 == 2: z.append(data.object[i])
+            z_angel = data.angle
+        #fig = plt.figure()
+        #ax = plt.axes(projection='3d')
+        #ax.plot3D(x[0], y[0], z[0])
+        #ax.scatter3D(x[1:],y[1:],z[1:])
+        #plt.show()
 
+        point_transformed = transformation(x[0],y[0],z[0])
+        # print(point_transformed)
+        rospy.spin()
+        return data
+    except rospy.ServiceException as e:
+        print("Service call failed: %s"%e)
+"""
 # c_pose = {'left' :[[[0.38,  0.2, 0.15],  [0.0, 65, 0.0]],
 #                     [[0.38,  0.2, -0.25],  [0.0, 65, 0.0]],
 #                     [[0.38,  0.2, -0.65],    [0.0, 65, 0.0]]],
@@ -108,7 +160,6 @@ def add_two_ints_client():
 #                     [[0.10, -0.4463, -0.6500],  [0.000, 0.000, 0.000]]],
 #           'left_indx' : 0, 'right_indx' : 0}
 
-# place_pose = [obj_pose[0], obj_pose[1], obj_pose[2], 0.000, 0.000, 0.000]
 obj_pose = [0,0,0,0,0,0]
 place_pose = [obj_pose[0], obj_pose[1], obj_pose[2], 0.000, 0.000, 0.000]
 
@@ -126,7 +177,7 @@ c_pose = {'left' :[[[-0.1000, 0.2363, -0.600],  [44.024, -0.005, -44.998]],
                     [[-0.20, 0.0363, -0.47500],  [44.024, -0.005, -44.998]]],
           'right':[[[0.10, -0.30, -0.40],  [0.000, 30.000, 0.000]],#start position(hands-up)
                     [[0.30, -0.30, -0.25],  [0.000, 45.000, 0.000]],#pre-upper position(extend hands)
-                    [[obj_pose[0]-0.15*cos(obj_pose[3]), obj_pose[1]-0.15*sin(obj_pose[3]), obj_pose[2]+0.10],  [obj_pose[3], 45.000, 0.000]],#upper position(above object)
+                    [[obj_pose[0]-0.31*np.cos(obj_pose[3]), obj_pose[1]-0.31*np.sin(obj_pose[3]), obj_pose[2]+0.15],  [obj_pose[3], 45.000, 0.000]],#upper position(above object)
                     [[obj_pose[0], obj_pose[1], obj_pose[2]],  [obj_pose[3], 45.000, 0.000]],#grip position(grip object)
                     [[obj_pose[0], obj_pose[1], obj_pose[2]],  [obj_pose[3], 45.000, 0.000]],#griped
                     [[obj_pose[0], obj_pose[1], obj_pose[2]+10],  [obj_pose[3], 45.000, 0.000]],#lift position(directly above)
@@ -312,24 +363,17 @@ class WipeTask:
      
     def strategy(self, state, side):
         print("strategy", state)
-        print("5")
         cmd = Command()
         cmd_queue = queue.Queue()
         if state == State.init:
-            print("6")
             cmd['cmd'] = 'jointMove'
             cmd['gripper_cmd'] = 'active'
-            #cmd['cmd'] = 'occupied'
-            cmd['jpos'] = [0, 0, 0, 0, 0, 0, 0, 1]
+            cmd['jpos'] = [0, 0, 0, 0, 0, 0, 0, 0]
             cmd['state'] = State.init
             cmd['speed'] = 20
             cmd_queue.put(copy.deepcopy(cmd))
-            self.dual_arm.send_cmd(side, False, cmd_queue)
-            print("YOYO")
-            place_pose = [0.30, -0.30, -0.25, 0.000, 45.000, 0.000]
-            obj_pose = [point_transformed[2][0], point_transformed[2][1], point_transformed[2][2], z_angel, 45.0, 0]
-
-
+            self.dual_arm.send_cmd(side, True, cmd_queue)
+            
         elif state == State.safety_up:
             cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
@@ -375,6 +419,7 @@ class WipeTask:
             cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             cmd['state'] =  State.grab_obj
+            #cmd['gripper_cmd'] = 'grap_pose_point'
             cmd_queue.put(copy.deepcopy(cmd))
             self.dual_arm.send_cmd(side, False, cmd_queue)
             if side != 'fail':
@@ -386,7 +431,7 @@ class WipeTask:
             #cmd['cmd'] = 'occupied'
             cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
-            cmd['gripper_cmd'] = 'close'
+            cmd['gripper_cmd'] = 'grap_pose_point'
             cmd['state'] =  State.grabed
             cmd_queue.put(copy.deepcopy(cmd))
             self.dual_arm.send_cmd(side, False, cmd_queue)
@@ -396,7 +441,7 @@ class WipeTask:
                 print('fuckfailfuckfailfuckfail') 
 
         elif state == State.lift_up:
-            cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
+            cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             cmd_queue.put(copy.deepcopy(cmd))
             # cmd['cmd'] = 'occupied'
@@ -408,9 +453,9 @@ class WipeTask:
             else:
                 print('fuckfailfuckfailfuckfail')       
 
-
+# if place point change more than two axis than > p2p 
         elif state == State.apporach_place:
-            cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
+            cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             #print(c_pose[side][c_pose[side+'_indx']][0])
             cmd_queue.put(copy.deepcopy(cmd))
@@ -440,7 +485,7 @@ class WipeTask:
             #cmd['cmd'] = 'occupied'
             cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
-            cmd['gripper_cmd'] = 'close'
+            cmd['gripper_cmd'] = 'open'
             cmd['state'] = State.placed
             cmd_queue.put(copy.deepcopy(cmd))
             self.dual_arm.send_cmd(side, False, cmd_queue)
@@ -450,7 +495,7 @@ class WipeTask:
                 print('fuckfailfuckfailfuckfail')  
 
         elif state == State.above_obj:
-            cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
+            cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             cmd_queue.put(copy.deepcopy(cmd))
             # cmd['cmd'] = 'occupied'
@@ -463,11 +508,11 @@ class WipeTask:
                 print('fuckfailfuckfailfuckfail')   
 
         elif state == State.safety_back:
-            cmd['cmd'], cmd['mode'] = 'ikMove', 'p2p'
+            cmd['cmd'], cmd['mode'] = 'ikMove', 'line'
             cmd['pos'], cmd['euler'], cmd['phi'] = c_pose[side][c_pose[side+'_indx']][0], c_pose[side][c_pose[side+'_indx']][1], 0
             cmd_queue.put(copy.deepcopy(cmd))
             # cmd['cmd'] = 'occupied'
-            cmd['gripper_cmd'] = 'open'
+            #cmd['gripper_cmd'] = 'open'
             cmd['state'] = State.safety_back
             cmd_queue.put(copy.deepcopy(cmd))
             side = self.dual_arm.send_cmd(side, False, cmd_queue)
@@ -481,42 +526,120 @@ class WipeTask:
             cmd['gripper_cmd'] = 'reset'
             cmd['jpos'] = [0, 0, 0, 0, 0, 0, 0, 0]
             cmd['state'] = State.finish_init
-            cmd['suc_cmd'] = 'Off'
+            # cmd['suc_cmd'] = 'Off'
             cmd_queue.put(copy.deepcopy(cmd))
             self.dual_arm.send_cmd(side, False, cmd_queue)
         print("7")
         return side
 
     def process(self):
+        global point_transformed
         rate = rospy.Rate(10)
         rospy.on_shutdown(self.dual_arm.shutdown)
         while True:
-            #print("8")
-            # l_status = self.dual_arm.left_arm.status
-            # # print(l_status)
-            # if l_status == Status.idle or l_status == Status.occupied:
-            #     l_state = self.state_control(self.dual_arm.left_arm.state, 'left')
-            #     self.strategy(l_state, 'left')
-            # rate.sleep()
+            if point_transformed[2][1][0]>=0:
+                print("8")
+                l_status = self.dual_arm.left_arm.status
+                # print(l_status)
+                if l_status == Status.idle or l_status == Status.occupied:
+                    l_state = self.state_control(self.dual_arm.left_arm.state, 'left')
+                    self.strategy(l_state, 'left')
+                rate.sleep()
+                if l_state is None :
+                    if l_status == Status.idle:
+                        return
+
             #==============================================================================
-            r_status = self.dual_arm.right_arm.status
-            if r_status == Status.idle or r_status == Status.occupied:
-                r_state = self.state_control(self.dual_arm.right_arm.state, 'right')
-                self.strategy(r_state, 'right')
-            rate.sleep()
+            elif point_transformed[2][1][0]<0:
+                print("82")
+                r_status = self.dual_arm.right_arm.status
+                if r_status == Status.idle or r_status == Status.occupied:
+                    r_state = self.state_control(self.dual_arm.right_arm.state, 'right')
+                    self.strategy(r_state, 'right')
+                rate.sleep()
+                if r_state is None :
+                    if r_status == Status.idle:
+                        return
             # if l_state is None and r_state is None:
             #     if l_status == Status.idle and r_status == Status.idle:
-            # #         return
+            #         return
             # if l_state is None :
             #     if l_status == Status.idle:
             #         return
-            if r_state is None :
-                if r_status == Status.idle:
-                    return
+            # if r_state is None :
+            #     if r_status == Status.idle:
+            #         return
 if __name__ == '__main__':
-    rospy.init_node('wiped')
+    rospy.init_node('pose')
+    # rospy.Subscriber("show_figure", TargetValue, receive_pose_data)
     add_two_ints_client()
+# while(1):
+#     if data.is_done == 0:
 
+#         strategy = WipeTask('dual_arm', False)
+#         rospy.on_shutdown(strategy.dual_arm.shutdown)
+#         print("4")
+#         strategy.process()
+#         strategy.dual_arm.shutdown()
+#         del strategy.dual_arm
+#         is_done == False
+#     else:
+#         print("not receive data yet")
+    obj_pose = [point_transformed[2][0][0], point_transformed[2][1][0], point_transformed[2][2][0], z_angel, 45.0, 0]
+    place_pose = [obj_pose[0], obj_pose[1], obj_pose[2], 0.000, 45.000, 0.000]
+    
+    # c_pose = {'left' :[[[0.1000, 0.30, -0.5000],  [0, 0, 0]],
+    #                     [[0.3000, 0.30, -0.2500],  [0, 45, 0]],
+    #                     [[obj_pose[0]-0.15*np.cos(obj_pose[3]), obj_pose[1]+0.15*np.sin(obj_pose[3]), obj_pose[2]+0.10], [0, 45, obj_pose[3]*180/np.pi]],
+    #                     [[obj_pose[0], obj_pose[1], obj_pose[2]],  [0, 45, obj_pose[3]*180/np.pi+45]],
+    #                     [[obj_pose[0], obj_pose[1], obj_pose[2]],  [0, 45, obj_pose[3]*180/np.pi+45]],
+    #                     [[obj_pose[0], obj_pose[1], obj_pose[2]+0.10],  [0, 45, obj_pose[3]*180/np.pi+45]],
+    #                     [[place_pose[0], place_pose[1], place_pose[2]+0.10],  [0, 45, 0]],
+    #                     [[place_pose[0], place_pose[1], place_pose[2]],  [0, 45, 0]],
+    #                     [[place_pose[0], place_pose[1], place_pose[2]],  [0, 45, 0]],
+    #                     [[place_pose[0], place_pose[1], place_pose[2]+0.10],  [0, 45, 0]],
+    #                     [[0.3000, 0.30, -0.2500],  [0, 45, 0]],
+    #                     [[0.1000, 0.30, -0.3000],  [0, 20, 0]]],
+    #             'right':[[[-0.30, -0.2463, -0.6500],  [0.000, 0.000, 0.000]],#start position(hands-up)
+    #                     [[0.30, -0.30, -0.25],  [0.000, 45.000, 0.000]],#pre-upper position(extend hands)
+    #                     [[obj_pose[0]-0.15*np.cos(obj_pose[3]), obj_pose[1]-0.15*np.sin(obj_pose[3]), obj_pose[2]+0.10],  [0, 45.000, obj_pose[3]*180/np.pi]],#upper position(above object)
+    #                     [[obj_pose[0], obj_pose[1], obj_pose[2]],  [0, 45.000, obj_pose[3]*180/np.pi]],#grip position(grip object)
+    #                     [[obj_pose[0], obj_pose[1], obj_pose[2]],  [0, 45.000, obj_pose[3]*180/np.pi]],#griped
+    #                     [[obj_pose[0], obj_pose[1], obj_pose[2]+0.10],  [0, 45.000, obj_pose[3]*180/np.pi]],#lift position(directly above)
+    #                     [[place_pose[0], place_pose[1], place_pose[2]+0.10],  [0.000, 45.000, 0.000]],#pre-place position
+    #                     [[place_pose[0], place_pose[1], place_pose[2]],  [0.000, 45.000, 0.000]],#place position
+    #                     [[place_pose[0], place_pose[1], place_pose[2]],  [0.000, 45.000, 0.000]],#placeed
+    #                     [[place_pose[0], place_pose[1], place_pose[2]+0.10],  [0.000, 45.000, 0.000]],#pre-place position
+    #                     [[0.30, -0.30, -0.25],  [0.000, 45.000, 0.000]],#pre-upper position(extend hands)
+    #                     [[0.10, -0.30, -0.40],  [0.000, 30.000, 0.000]]],#start position(hands-up)
+    #             'left_indx' : 0, 'right_indx' : 0}
+
+    c_pose = {'left' :[[[0.1000, 0.30, -0.5000],  [0, 0, 0]],
+                        [[0.3000, 0.30, -0.2500],  [0, 45, 0]],
+                        [[obj_pose[0]-0.10, obj_pose[1]+0.10, obj_pose[2]+0.10], [-30, 45, -10]],
+                        [[obj_pose[0], obj_pose[1], obj_pose[2]],  [-90, 45, -45]],
+                        [[obj_pose[0], obj_pose[1], obj_pose[2]],  [-90, 45, -45]],
+                        [[obj_pose[0], obj_pose[1], obj_pose[2]+0.10],  [-90, 45, -45]],
+                        [[0.60, 0.1363, -0.2500],  [-100, 55, -25]],
+                        [[0.72, 0.1363, -0.2500],  [-120, 70, -15]],
+                        [[0.72, 0.1363, -0.2500],  [-120, 70, -15]],
+                        [[0.60, 0.1363, -0.2500],  [-100, 55, -25]],
+                        [[0.3000, 0.30, -0.2500],  [0, 45, 0]],
+                        [[0.1000, 0.30, -0.3000],  [0, 20, 0]]],
+                'right':[[[-0.10, -0.30, -0.500],  [0.000, 0.000, 0.000]],#start position(hands-up)
+                        [[0.30, -0.30, -0.25],  [0.000, 45.000, 0.000]],#pre-upper position(extend hands)
+                        [[obj_pose[0]-0.10, obj_pose[1]-0.10, obj_pose[2]+0.10],  [40, 45.000, 10]],#upper position(above object)
+                        [[obj_pose[0], obj_pose[1], obj_pose[2]],  [90, 45.000, 45]],#grip position(grip object)
+                        [[obj_pose[0], obj_pose[1], obj_pose[2]],  [90, 45.000, 45]],#griped
+                        [[obj_pose[0], obj_pose[1], obj_pose[2]+0.10],  [90, 45.000, 45]],#lift position(directly above)
+                        [[0.60, -0.1363, -0.2500],  [100, 55, 25]],#pre-place position
+                        [[0.72, -0.1363, -0.2500],  [120, 70, 15]],#place position
+                        [[0.72, -0.1363, -0.2500],  [120, 70, 15]],#placeed
+                        [[0.60, -0.1363, -0.2500],  [100, 55, 25]],#pre-place position
+                        [[0.30, -0.30, -0.25],  [0.000, 45.000, 0.000]],#pre-upper position(extend hands)
+                        [[0.10, -0.30, -0.40],  [0.000, 20.000, 0.000]]],#start position(hands-up)
+                'left_indx' : 0, 'right_indx' : 0}
+    print(c_pose['left'][2],z_angel)
     strategy = WipeTask('dual_arm', False)
     rospy.on_shutdown(strategy.dual_arm.shutdown)
     print("4")

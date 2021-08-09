@@ -21,7 +21,7 @@ class RobotiqGripper:
         self.name    = _name
         self.gripped = False
         self.speed = 255
-        self.force = 150
+        self.force = 200
         self.curr_pos = 0
         print('name = ', self.name)
         if 'gazebo' in self.name:
