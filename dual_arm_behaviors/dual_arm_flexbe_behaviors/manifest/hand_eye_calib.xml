@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="hand_eye_calib">
+
+	<executable package_path="dual_arm_flexbe_behaviors.hand_eye_calib_sm" class="hand_eye_calibSM" />
+	<tagstring>1.0</tagstring>
+	<author>Andy</author>
+	<date>Tue Aug 10 2021</date>
+	<description>
+		Use ChArUco to calibrate hand-eye transform
+	</description>
+
+
+	<!-- Contained Behaviors -->
+
+	<!-- Available Parameters -->
+
+</behavior>
