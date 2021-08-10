@@ -8,7 +8,8 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from dual_arm_flexbe_states.example_state import ExampleState
+from dual_arm_flexbe_states.get_pose import GetPoseState
+from dual_arm_flexbe_states.robot_move import RobotMoveState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -30,6 +31,8 @@ class hand_eye_calibSM(Behavior):
 		self.name = 'hand_eye_calib'
 
 		# parameters of this behavior
+		self.add_parameter('robot_name', 'right_arm')
+		self.add_parameter('en_sim', True)
 
 		# references to used behaviors
 
@@ -43,7 +46,7 @@ class hand_eye_calibSM(Behavior):
 
 
 	def create(self):
-		# x:30 y:365, x:130 y:365
+		# x:30 y:365, x:459 y:198
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 
 		# Additional creation code can be added inside the following tags
@@ -53,11 +56,19 @@ class hand_eye_calibSM(Behavior):
 
 
 		with _state_machine:
-			# x:114 y:138
-			OperatableStateMachine.add('tmp_state',
-										ExampleState(target_time=1),
-										transitions={'continue': 'finished', 'failed': 'failed'},
-										autonomy={'continue': Autonomy.Off, 'failed': Autonomy.Off})
+			# x:94 y:115
+			OperatableStateMachine.add('get_pose',
+										GetPoseState(robot_name=self.robot_name),
+										transitions={'done': 'move_robot', 'finish': 'finished'},
+										autonomy={'done': Autonomy.Off, 'finish': Autonomy.Off},
+										remapping={'robot_cmd': 'robot_cmd'})
+
+			# x:298 y:114
+			OperatableStateMachine.add('move_robot',
+										RobotMoveState(robot_name=self.robot_name, en_sim=self.en_sim),
+										transitions={'done': 'get_pose', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'robot_cmd': 'robot_cmd'})
 
 
 		return _state_machine
