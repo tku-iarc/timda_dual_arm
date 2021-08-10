@@ -621,7 +621,7 @@ class ArmTask:
                 elif 'grap_alcohol' in cmd['gripper_cmd']:
                     #self.gripper.gripper_setting(255, 150)
                     #print('-------------gggg------------')
-                    self.gripper.gripper_pos(58)
+                    self.gripper.gripper_pos(57)
                 elif 'grap_bottle' in cmd['gripper_cmd']:
                     #self.gripper.gripper_setting(255, 150)
                     #print('-------------gggg------------')
