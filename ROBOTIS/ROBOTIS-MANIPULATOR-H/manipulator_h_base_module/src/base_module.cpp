@@ -433,7 +433,10 @@ void BaseModule::p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPos
       p2p_msg.value.push_back(manipulator_->manipulator_link_data_[id]->joint_angle_);
     }
     p2p_msg.slide_pos = slide_->goal_slide_pos;
-    p2p_msg.speed     = robotis_->p2p_pose_msg_.speed;
+    if (robotis_->p2p_pose_msg_.speed > 1 && robotis_->p2p_pose_msg_.speed <= 100)
+      p2p_msg.speed = robotis_->p2p_pose_msg_.speed;
+    else
+      p2p_msg.speed = robotis_->move_speed_;
     robotis_->joint_pose_msg_ = p2p_msg;
 
     if (robotis_->is_moving_ == false)
@@ -630,7 +633,10 @@ void BaseModule::moveitPoseMsgCallback(const manipulator_h_base_module_msgs::P2P
                 
               
             p2p_msg.slide_pos = Result.planned_trajectory.joint_trajectory.points[i].positions[0];
-            p2p_msg.speed     = robotis_->p2p_pose_msg_.speed;
+            if (robotis_->p2p_pose_msg_.speed > 1 && robotis_->p2p_pose_msg_.speed <= 100)
+              p2p_msg.speed = robotis_->p2p_pose_msg_.speed;
+            else
+              p2p_msg.speed = robotis_->move_speed_;
             if (i>0)
               slide_->slide_pos = Result.planned_trajectory.joint_trajectory.points[i-1].positions[0];
             robotis_->joint_pose_msg_ = p2p_msg;
@@ -781,9 +787,15 @@ void BaseModule::generateJointTrajProcess()
     return;
   robotis_->is_planning_ = true;
   /* set movement time */
-  double mov_speed = robotis_->joint_pose_msg_.speed;
+
+  double mov_speed;
+  if (robotis_->joint_pose_msg_.speed > 1 && robotis_->joint_pose_msg_.speed <= 100)
+    mov_speed = robotis_->joint_pose_msg_.speed;
+  else
+    mov_speed = robotis_->move_speed_;
   double tol = 90 * (mov_speed / 100) * DEGREE2RADIAN; // rad per sec
   double mov_time = 1.5;
+  
 
   double max_diff, abs_diff, slide_diff;
   slide_diff = fabs(robotis_->joint_pose_msg_.slide_pos - slide_->slide_pos);
@@ -860,10 +872,15 @@ void BaseModule::generateTaskTrajProcess()
   robotis_->is_planning_ = true;
 
   /* set movement time */
-  double mov_speed = robotis_->kinematics_pose_msg_.speed;
+  double mov_speed;
+  if (robotis_->kinematics_pose_msg_.speed > 1 && robotis_->kinematics_pose_msg_.speed <= 100)
+    mov_speed = robotis_->kinematics_pose_msg_.speed;
+  else
+    mov_speed = robotis_->move_speed_;
   double tol = 0.3 * (mov_speed / 100); // m per sec
   double mov_time = 1.5;
   double slide_diff;
+  
 
   manipulator_->manipulator_link_data_[0]->mov_speed_ = mov_speed;
 
@@ -1173,6 +1190,7 @@ void BaseModule::stop()
     delete tra_gene_thread_;
     stop_flag = true;
     ROS_INFO("!!!!Stop robot arm!!!!");
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Emergency Stop");
   }
   return;
 }

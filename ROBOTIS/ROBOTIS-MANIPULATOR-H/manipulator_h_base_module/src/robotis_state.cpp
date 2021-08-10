@@ -35,6 +35,7 @@ RobotisState::RobotisState()
   mov_time_ = 1.0;
   smp_time_ = 0.008;
   all_time_steps_ = int(mov_time_ / smp_time_) + 1;
+  move_speed_ = 20;
 
   calc_joint_tra_ = Eigen::MatrixXd::Zero(all_time_steps_, MAX_JOINT_ID + 1);
   calc_task_tra_  = Eigen::MatrixXd::Zero(all_time_steps_, 3);

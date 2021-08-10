@@ -47,6 +47,7 @@ public:
   int     all_time_steps_;
   double  mov_time_;
   double  smp_time_;
+  int     move_speed_;
 
   Eigen::MatrixXd calc_slide_tra_;  //new
   Eigen::MatrixXd calc_joint_tra_;
