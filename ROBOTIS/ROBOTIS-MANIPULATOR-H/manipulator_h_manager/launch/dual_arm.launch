@@ -3,7 +3,9 @@
 <launch>
     <arg name="en_sim" default="false"/>
     <arg name="gripper_comport"   default="/dev/ttyUSB0" />
+    <arg name="arduino_port" default="/dev/wrs/arduino"/>
     <arg name="arm_type" default="dual_arm"/>
+
     <include file="$(find manipulator_h_manager)/launch/single_arm.launch">
         <arg name="side"   value="right"/>
         <arg name="en_sim" value="$(arg en_sim)"/>
@@ -38,5 +40,8 @@
     </node>
     <node pkg="manipulator_h_joystick" type="manipulator_h_joystick_node" name="joy_control" output="screen">
         <param name="side" type="str" value="both"/>
+    </node>
+    <node pkg="rosserial_python" type="serial_node.py" name="arduino_node">
+        <param name="port"  value="$(arg arduino_port)"/>
     </node>
 </launch>

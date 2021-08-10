@@ -18,7 +18,7 @@ from arm_control import DualArmTask
 from arm_control import ArmTask, SuctionTask, Command, Status
 from enum import IntEnum
 
-
+#right_bord_pos = 0.75, -0.2, -0.43
 right_c_pose = [[[0.5004538080655432, -0.2532141209025338,  -0.06718596221420141, ],[ 0.0323699884883336,  65.01652468420149, -0.03279616184726517, ], -7.011867844079209e-05],
                 [[0.5008529474659436, -0.3355746512003659,  -0.0795152955502393,  ],[ 0.03174282075550094, 64.97838972621923, -0.008572001027169684,], -7.070874784871437e-05],
                 [[0.5012091875650093, -0.3880340515253939,  -0.07990131419809376, ],[ 0.03823722452664159, 64.95018528966597,  0.02866793345451034, ], -7.163562836185784e-05],
@@ -166,7 +166,7 @@ class CameraCalib:
                 # config.read(['img_trans_pinto.ini', curr_path])
                 rospack = rospkg.RosPack()
                 curr_path = rospack.get_path('hand_eye')
-                config.read(curr_path + '/config/img_trans.ini')
+                config.read(curr_path + '/config/' + side + '_img_trans.ini')
                 
                 config.set("External", "Key_1_1", str(trans_mat[0][0]))
                 config.set("External", "Key_1_2", str(trans_mat[0][1]))
