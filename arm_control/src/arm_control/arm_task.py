@@ -48,6 +48,7 @@ class Command(dict):
         self['mode']   = "p2p"    #'p2p', 'line'
         self['pos']    = None
         self['euler']  = None
+        self['quat']   = None
         self['phi']    = None
         self['noa']      = None
         self['suc_cmd']= None

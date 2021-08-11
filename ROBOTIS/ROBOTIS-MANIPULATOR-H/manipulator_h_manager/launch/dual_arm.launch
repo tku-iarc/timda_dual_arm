@@ -1,25 +1,33 @@
 <?xml version="1.0" ?>
-   
+
 <launch>
     <arg name="en_sim" default="false"/>
+
     <arg name="left_comport"   default="/dev/ttyUSB1" />
     <arg name="right_comport"   default="/dev/ttyUSB3" />
+
+    <arg name="gripper_comport"   default="/dev/ttyUSB0" />
+    <arg name="arduino_port" default="/dev/wrs/arduino"/>
+    <arg name="arm_type" default="dual_arm"/>
+
     <include file="$(find manipulator_h_manager)/launch/single_arm.launch">
         <arg name="side"   value="right"/>
         <arg name="en_sim" value="$(arg en_sim)"/>
-        <!-- <arg name="comport" value="/dev/ttyUSB0" /> -->
+        <arg name="arm_type"   value="arm_type"/>
     </include>
     <include file="$(find manipulator_h_manager)/launch/single_arm.launch">
         <arg name="side"   value="left"/>
         <arg name="en_sim" value="$(arg en_sim)"/>
-        <!-- <arg name="comport" value="/dev/ttyUSB2" /> -->
+        <arg name="arm_type"   value="arm_type"/>
     </include>
 
-    <group ns="left_arm">
+    <!--<group ns="left_arm">
         <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
+
             <param name="comport" value="$(arg left_comport)"/>
+            <param name="comport" value="$(arg gripper_comport)"/>
         </node>
-    </group>
+    </group>-->
     <!-- <group ns="right_arm">
         <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
             <param name="comport" value="$(arg right_comport)"/>
@@ -28,9 +36,18 @@
 
     <include file="$(find mobile_dual_arm)/launch/mobile_dual_arm.launch" if="$(arg en_sim)">
         <arg name="paused" default="true"/>
-	<arg name="use_sim_time" default="true"/>
-	<arg name="gui" default="true"/>
-	<arg name="headless" default="false"/>
-	<arg name="debug" default="false"/>
+	    <arg name="use_sim_time" default="true"/>
+	    <arg name="gui" default="true"/>
+	    <arg name="headless" default="false"/>
+	    <arg name="debug" default="false"/>
     </include>
+    <node pkg="joy" type="joy_node" name="dual_arm_joy" output="screen">
+        <param name="joy_node/dev" value="/dev/input/js0"/>
+    </node>
+    <node pkg="manipulator_h_joystick" type="manipulator_h_joystick_node" name="joy_control" output="screen">
+        <param name="side" type="str" value="both"/>
+    </node>
+    <node pkg="rosserial_python" type="serial_node.py" name="arduino_node">
+        <param name="port"  value="$(arg arduino_port)"/>
+    </node>
 </launch>

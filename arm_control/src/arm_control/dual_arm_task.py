@@ -112,6 +112,8 @@ class DualArmTask:
                 if cmd['cmd'] == 'ikMove':
                     print(cmd['pos'], cmd['euler'], cmd['phi'])
                     self.left_value, self.left_limit = self.left_arm.check_range_limit(cmd['pos'], cmd['euler'], cmd['phi'])
+                    print('self.left_value', self.left_value)
+
                     if self.left_limit:
                         return 'fail', cmd_q
                 cmd_q.put(cmd)

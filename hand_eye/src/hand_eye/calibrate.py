@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from aruco_hand_eye import HandEyeConnector
+from hand_eye import HandEyeConnector
 
 def main():
     rospy.init_node('aruco_hand_eye')

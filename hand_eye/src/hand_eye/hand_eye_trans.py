@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import os
 import numpy as np
 import rospy
 import tf
 import ConfigParser
 from math import radians, degrees, pi
-from control_node.msg import robot_info
 from hand_eye.srv import eye2base, eye2baseResponse
 
 class HandEyeTrans:

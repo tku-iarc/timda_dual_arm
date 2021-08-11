@@ -10,7 +10,7 @@ import numpy as np
 from geometry_msgs.msg import Vector3, Quaternion, Transform, TransformStamped
 from visp_hand2eye_calibration.msg import TransformArray
 from visp_hand2eye_calibration.srv import compute_effector_camera_quick
-from aruco_hand_eye.srv import aruco_info, aruco_infoRequest, hand_eye_calibration, hand_eye_calibrationResponse
+from hand_eye.srv import aruco_info, aruco_infoRequest, hand_eye_calibration, hand_eye_calibrationResponse
 
 class HandEyeConnector(object):
     def __init__(self):
@@ -31,8 +31,6 @@ class HandEyeConnector(object):
 
         self.publish_tf = rospy.get_param('~publish_tf')
         self.tf_suffix = rospy.get_param('~tf_suffix')
-        self.sample_rate = rospy.get_param('~sample_rate')
-        self.interactive = rospy.get_param('~interactive')
         self.marker_id = rospy.get_param('~marker_id')
 
         # Compute the camera base to optical transform
@@ -46,9 +44,6 @@ class HandEyeConnector(object):
         # tf structures
         self.listener = tf.TransformListener()
         self.broadcaster = tf.TransformBroadcaster()
-
-        # rate limiter
-        self.rate = rospy.Rate(self.sample_rate)
 
         # input data
         self.hand_world_samples = TransformArray()
@@ -70,14 +65,13 @@ class HandEyeConnector(object):
                 'compute_effector_camera_quick',
                 compute_effector_camera_quick)
 
-        self.caculate = False
+        self.samples_min = 5
         
         
 
-    def aruco_tracker(self, cmd):
+    def aruco_tracker(self):
         req = aruco_infoRequest()
         req.id = self.marker_id
-        req.cmd = cmd
         rospy.wait_for_service('get_ar_marker')
         try:
             get_aruco = rospy.ServiceProxy('get_ar_marker', aruco_info)
@@ -136,11 +130,10 @@ class HandEyeConnector(object):
         print(R)
         return R
 
-    def aruco_cb(self, end_trans):
+    def aruco_cb(self, req):
         res = hand_eye_calibrationResponse()
-        ar_marker = self.aruco_tracker(end_trans.cmd)
-        if end_trans.cmd == 'hello':
-            self.caculate = True
+        ar_marker = self.aruco_tracker()
+
         if ar_marker.rvecs is not None:
             r = cv2.Rodrigues(ar_marker.rvecs)[0]
             rotation = [[r[0][0], r[0][1], r[0][2], 0],
@@ -165,49 +158,22 @@ class HandEyeConnector(object):
             # Get the camera optical frame for convenience
             optical_frame_id = msg.header.frame_id
     
-            # try:
-            #     # Get the transform between the marker and camera frames (from FK)
-            #     self.listener.waitForTransform(
-            #         self.marker_parent_frame_id, self.camera_parent_frame_id,
-            #         msg.header.stamp, rospy.Duration(0.1))
-    
-            #     (trans,rot) = self.listener.lookupTransform(
-            #         self.marker_parent_frame_id, self.camera_parent_frame_id,
-            #         msg.header.stamp)
-            # except tf.Exception as ex:
-            #     rospy.logwarn(str(ex))
-            #     return
-    
             # Update data
             self.hand_world_samples.header.frame_id = 'ee'#optical_frame_id
-            self.hand_world_samples.transforms.append(end_trans.end_trans)
+            self.hand_world_samples.transforms.append(req.end_trans)
     
             self.camera_marker_samples.header.frame_id = 'cc'#optical_frame_id
             self.camera_marker_samples.transforms.append(msg.transform)
     
         if len(self.hand_world_samples.transforms) != len(self.camera_marker_samples.transforms):
             rospy.logerr("Different numbers of hand-world and camera-marker samples.")
-            res.is_done = False
             return res
 
-        n_min = 22
-        # n_min = 10
         
-        if len(self.hand_world_samples.transforms) < n_min and self.caculate == False:
-            rospy.logwarn("%d more samples needed..." % (n_min-len(self.hand_world_samples.transforms)))
-            res.is_done = False
+        if len(self.hand_world_samples.transforms) < self.samples_min or not req.is_done:
+            rospy.logwarn("%d more samples needed..." % (self.samples_min-len(self.hand_world_samples.transforms)))
             return res
         else:
             res.end2cam_trans = self.compute_calibration(msg)
-            res.is_done = True
             return res
-        # interactive
-        if self.interactive:
-            i = raw_input('Hit [enter] to accept this latest sample, or `d` to discard: ')
-            if i == 'd':
-                del self.hand_world_samples.transforms[-1]
-                del self.camera_marker_samples.transforms[-1]
-                self.compute_calibration(msg)
-            raw_input('Hit [enter] to capture the next sample...')
-        else:
-            self.rate.sleep()
+

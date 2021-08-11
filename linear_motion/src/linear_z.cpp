@@ -1,12 +1,11 @@
 #include "linear_motion/slide.h"
-
+#include <ctime>
 void slide_callback(const manipulator_h_base_module_msgs::SlideCommand::ConstPtr& msg)
 {
     goal_pos = (double)100000.0*(msg->pos+0.8);
-    //goal_pos = -1*(double)100000.0*(msg->pos);
-
-    cmd_arr[4] = goal_pos>>16;
-    cmd_arr[5] = goal_pos;
+    // goal_pos = -1*(double)100000.0*(msg->pos);
+    if(goal_pos > 80000.0) goal_pos = 80000;
+    if(goal_pos < 0.0) goal_pos = 0;
 }
 
 void read_feedback()
@@ -53,36 +52,50 @@ modbus_t* init_modbus_rtu(int id, std::string port, int baud_rate)
 void send_cmd()
 // for communication with driver
 {
-    int speed = 0;
-    int smp_deleration = DECELERATION * smp_time;
-
-    ros::Rate loop_rate(1 / smp_time);
-    while (ros::ok())
+    if (goal_pos != curr_pos)
     {
-        if (goal_pos != curr_pos)
+        int diff_pos = goal_pos - curr_pos;
+        int speed_tmp = float(diff_pos) / (smp_time*20);
+        // speed_tmp = (speed_tmp < MAX_SPEED) ? speed_tmp : MAX_SPEED;
+        if(speed_tmp > MAX_SPEED) speed_tmp = MAX_SPEED;
+        if(speed_tmp < MIN_SPEED) speed_tmp = MIN_SPEED;
+        // cmd_speed = (speed_tmp < cmd_speed) ? (
+        //     ((cmd_speed - speed_tmp) < smp_deleration) ? speed_tmp : cmd_speed - smp_deleration
+        //     ) : speed_tmp;
+        // cmd_speed = (speed_tmp < cmd_speed) ? cmd_speed : speed_tmp;
+        // cmd_speed = speed_tmp;
+        // cmd_arr[6] = cmd_speed>>16;
+        // if(diff_pos > 3) goal_pos = goal_pos + (diff_pos - 3) * 2;
+        // if(diff_pos < -3) goal_pos = goal_pos + (diff_pos + 3) * 2;
+        // if(goal_pos > 80000.0) goal_pos = 80000;
+        // if(goal_pos < 0.0) goal_pos = 0;
+        if(abs(diff_pos) < float(abs(curr_pos))/MAX_SPEED * 100)
         {
-            int diff_pos = abs(goal_pos - curr_pos);
-            int speed_tmp = diff_pos / smp_time;
-            speed_tmp = (speed_tmp < MAX_SPEED) ? speed_tmp : MAX_SPEED;
-            speed = (speed_tmp < speed) ? (
-                ((speed - speed_tmp) < smp_deleration) ? speed_tmp : speed - smp_deleration
-                ) : speed_tmp;
-            // speed = (speed_tmp < speed) ? speed : speed_tmp;
-            // cmd_arr[6] = speed>>16;
-            cmd_arr[7]  = speed;
-            cmd_arr[9]  = exp((speed / MAX_SPEED)*4 - 2) * 5410;
-            cmd_arr[11] = speed*2;
-            // cmd_arr[9] = speed*2;
-
-            //std::cout << "speed = " << (cmd_arr[7] | cmd_arr[6]<<16) <<std::endl;
-            write_command();
+            cmd_arr[3] = 1;
+            cmd_speed = abs(speed_tmp);
         }
         else
-            speed = 0;
-
-        read_feedback();
-        loop_rate.sleep();
+        {
+            cmd_arr[3] = 7;
+            cmd_speed = speed_tmp;
+        }
+        int diff_speed = abs(cmd_speed - curr_speed);
+        int acc = 3 * diff_speed / (smp_time) + 1;
+        // cmd_speed = abs(speed_tmp);
+        // cmd_arr[3] = 1;
+        cmd_arr[4] = goal_pos>>16;
+        cmd_arr[5] = goal_pos;
+        cmd_arr[6] = cmd_speed>>16;
+        cmd_arr[7] = cmd_speed;
+        // cmd_arr[9]  = exp((cmd_speed / MAX_SPEED)*4 - 2) * 5410;
+        // cmd_arr[9] = (3*abs(cmd_speed) > ACCELERATION) ? ACCELERATION : 3*abs(cmd_speed);
+        // cmd_arr[11] = (3*abs(cmd_speed) > DECELERATION) ? DECELERATION : 3*abs(cmd_speed);
+        cmd_arr[9] = (acc > ACCELERATION) ? ACCELERATION : acc;
+        cmd_arr[11] = (acc > DECELERATION) ? DECELERATION : acc;
+        write_command();
     }
+    else
+        cmd_speed = 0;
 }
 
 int main(int argc, char **argv)
@@ -113,25 +126,28 @@ int main(int argc, char **argv)
     goal_pos = curr_pos;
     std::cout << side_str + " slide connect ok " << goal_pos<<std::endl;
 
+    smp_deleration = DECELERATION * smp_time;
 
     // generate thread to communicate with driver
-    com_driver_thread_ = new boost::thread(boost::bind( &send_cmd ));
+    // com_driver_thread_ = new boost::thread(boost::bind( &send_cmd ));
 
     // ============================= Subscribe message =============================
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("slide_command_msg", 1, slide_callback);
     ros::Publisher  pub = n.advertise<linear_motion::Slide_Feedback>("slide_feedback_msg", 1);
-    ros::Rate loop_rate(125);
+    ros::Rate loop_rate(1/smp_time);
 
     // ============================= ROS Loop =============================
     // main thread to communicate with other node
     while (ros::ok())
     {
+        send_cmd();
+        read_feedback();
         msg_fdb.curr_pos = curr_pos;
         msg_fdb.is_busy  = abs(curr_speed) > 10;
         pub.publish(msg_fdb);
-        ros::spinOnce();
 
+        ros::spinOnce();
         loop_rate.sleep();
     }
 
