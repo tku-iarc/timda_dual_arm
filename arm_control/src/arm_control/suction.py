@@ -23,18 +23,17 @@ cam2center_y_4_tote = 0.035#0.06 #0.05
 
 class SuctionTask:
 
-    switch_mode_pub = rospy.Publisher(
-                '/arduino/mode',
-                Bool,
-                queue_size=1
-            )
-
     def __init__(self, _name='/robotis'):
         """Inital object."""
         self.name    = _name
         self.fail_cnt = 0
         self.gripped = False
         print('name = ', self.name)
+        self.switch_mode_pub = rospy.Publisher(
+                '/arduino/mode',
+                Bool,
+                queue_size=1
+            )
         if 'gazebo' in self.name:
             if 'right' in self.name:
                 self.suction_pub = rospy.Publisher(

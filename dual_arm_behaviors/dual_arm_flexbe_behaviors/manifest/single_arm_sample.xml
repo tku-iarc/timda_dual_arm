@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<behavior name="Hand Eye Calib">
+<behavior name="Single Arm Sample">
 
-	<executable package_path="dual_arm_flexbe_behaviors.hand_eye_calib_sm" class="HandEyeCalibSM" />
+	<executable package_path="dual_arm_flexbe_behaviors.single_arm_sample_sm" class="SingleArmSampleSM" />
 	<tagstring>1.0</tagstring>
 	<author>Andy</author>
 	<date>Tue Aug 10 2021</date>
 	<description>
-		Use ChArUco to calibrate hand-eye transform
+		Sample behavior of single arm moving
 	</description>
 
 
