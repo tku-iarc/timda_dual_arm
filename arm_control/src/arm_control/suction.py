@@ -93,7 +93,7 @@ class SuctionTask:
             try:
                 rospy.wait_for_service(suction_service, timeout=1.)
             except rospy.ROSException as e:
-                rospy.logwarn('wait_for_service timeout')
+                rospy.logwarn('wait for suction service timeout')
                 self.robot_cmd_client(cmd)
                 
             try:

@@ -1,0 +1,19 @@
+<launch>
+  <arg name="en_sim" default="flase"/>
+  <arg name="side" default="left"/>
+  <include file="$(find hand_eye)/launch/charuco_hand_eye.launch">
+    <arg name="markerid"   value="30"/>
+    <arg name="markersize" value="0.1268"/>
+    <arg name="publish_tf" value="true"/>
+
+    <arg name="marker_parent_frame" value="/base_link"/>
+    <arg name="camera_parent_frame" value="/ee_link"/>
+
+    <arg name="camera" value="/camera"/>
+    <arg name="camera_frame" value="/camera_rgb_optical_frame"/>
+  </include>
+  <node name="hand_eye_calibration_arm_script" pkg="hand_eye" type="hand_eye_calibration.py" output="screen">
+    <param name="en_sim"        value="$(arg en_sim)"/> 
+    <param name="side"          value="$(arg side)"/>
+  </node>
+</launch>

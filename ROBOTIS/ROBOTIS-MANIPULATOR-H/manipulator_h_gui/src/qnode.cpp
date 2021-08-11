@@ -65,12 +65,13 @@ bool QNode::init() {
   ros::NodeHandle n_private("~");
 
   // Add your ros communications here.
-  ini_pose_msg_pub_ = n.advertise<std_msgs::String>("ini_pose_msg", 0);
+  specific_pose_msg_pub_ = n.advertise<std_msgs::String>("specific_pose_msg", 0);
   set_mode_msg_pub_ = n.advertise<std_msgs::String>("set_mode_msg", 0);
 
   joint_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::JointPose>("joint_pose_msg", 0);
   kinematics_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::KinematicsPose>("kinematics_pose_msg", 0);
   p2p_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::P2PPose>("p2p_pose_msg", 0);
+  moveit_pose_msg_pub_ = n.advertise<manipulator_h_base_module_msgs::P2PPose>("moveit_pose_msg", 0);
 
   //////////////////////////robitq2f_85////////////////////////////////////////////////////////////////////////                                                        
   grap_alcohol_msg_pub_ = n.advertise<std_msgs::String>("grap_alcohol_msg", 0);
@@ -79,6 +80,7 @@ bool QNode::init() {
 
   get_joint_pose_client_ = n.serviceClient<manipulator_h_base_module_msgs::GetJointPose>("get_joint_pose", 0);
   get_kinematics_pose_client_ = n.serviceClient<manipulator_h_base_module_msgs::GetKinematicsPose>("get_kinematics_pose", 0);
+  joy_calib_client_ = n.serviceClient<manipulator_h_joystick::JoyCalibration>("/joy_calib", 0);
 
   status_msg_sub_ = n.subscribe("status", 10, &QNode::statusMsgCallback, this);
 
@@ -171,6 +173,13 @@ void QNode::sendP2PPoseMsg( manipulator_h_base_module_msgs::P2PPose msg )
   log( Info , "Send P2P Pose Msg" );
 }
 
+void QNode::sendMoveItPoseMsg( manipulator_h_base_module_msgs::P2PPose msg )
+{
+  moveit_pose_msg_pub_.publish( msg );
+
+  log( Info , "Send MoveIt Pose Msg" );
+}
+
 //========robotiq_2f_gripper=======================
 void QNode::sendGrapAlcoholMsg( std_msgs::String msg )
 {
@@ -185,9 +194,9 @@ void QNode::sendReleasePoseMsg( std_msgs::String msg )
   log( Info , "Send Release Pose Msg" );
 }
 //=============================================================
-void QNode::sendIniPoseMsg( std_msgs::String msg )
+void QNode::sendSpecificPoseMsg( std_msgs::String msg )
 {
-  ini_pose_msg_pub_.publish ( msg );
+  specific_pose_msg_pub_.publish ( msg );
 
   log( Info , "Go to Manipulator Initial Pose" );
 }
@@ -239,20 +248,28 @@ void QNode::getKinematicsPose ( std::string group_name )
   // response
   if ( get_kinematics_pose_client_.call( _get_kinematics_pose ) )
   {
-    // manipulator_h_base_module_msgs::KinematicsPose _kinematcis_pose;
+    double pos[3] = {_get_kinematics_pose.response.group_pose.position.x,
+                     _get_kinematics_pose.response.group_pose.position.y,
+                     _get_kinematics_pose.response.group_pose.position.z};
+    double ori[3] = {_get_kinematics_pose.response.euler[0] * RADIAN2DEGREE,
+                     _get_kinematics_pose.response.euler[1] * RADIAN2DEGREE,
+                     _get_kinematics_pose.response.euler[2] * RADIAN2DEGREE};
+    double phi = _get_kinematics_pose.response.phi * RADIAN2DEGREE;
+    for(int i=0; i<3; i++)
+    {
+      pos[i] = std::round(pos[i]/0.001) * 0.001;
+      ori[i] = std::round(ori[i]/0.001) * 0.001;
+    }
+    pose_log << YAML::Flow << YAML::BeginSeq;
 
-    // _kinematcis_pose.name = _get_kinematics_pose.request.group_name;
-    // _kinematcis_pose.pose = _get_kinematics_pose.response.group_pose;
-    // _kinematcis_pose.phi  = _get_kinematics_pose.response.phi;
-  
-    pose_log << YAML::Flow<< YAML::BeginSeq;
-    pose_log << _get_kinematics_pose.response.group_pose.position.x;
-    pose_log << _get_kinematics_pose.response.group_pose.position.y;
-    pose_log << _get_kinematics_pose.response.group_pose.position.z;
-    pose_log << _get_kinematics_pose.response.euler[0] * RADIAN2DEGREE;
-    pose_log << _get_kinematics_pose.response.euler[1] * RADIAN2DEGREE;
-    pose_log << _get_kinematics_pose.response.euler[2] * RADIAN2DEGREE;
-    pose_log << _get_kinematics_pose.response.phi * RADIAN2DEGREE;
+    pose_log << YAML::BeginSeq;
+    for(int i=0; i<3; i++)
+      pose_log << std::round(pos[i]/0.001) * 0.001;
+    pose_log << YAML::EndSeq << YAML::BeginSeq;
+    for(int i=0; i<3; i++)
+      pose_log << std::round(ori[i]/0.001) * 0.001;
+    pose_log << YAML::EndSeq;
+    pose_log << std::round(phi/0.001) * 0.001;
     pose_log << YAML::EndSeq;
     
     Q_EMIT updateCurrentKinematicsPose( _get_kinematics_pose );
@@ -283,5 +300,13 @@ void QNode::getCurrPose(double (&data)[7])
     log(Error, "fail to get current pose.");
   return;
     
+}
+
+bool QNode::joyCalib(bool cmd)
+{
+  manipulator_h_joystick::JoyCalibration _calib_cmd;
+  _calib_cmd.request.calib_cmd = cmd;
+  if( joy_calib_client_.call( _calib_cmd ) )
+    return _calib_cmd.response.calib_status;
 }
 }  // namespace manipulator_h_gui

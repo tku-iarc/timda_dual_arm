@@ -1,4 +1,4 @@
-.vscode
+*.vscode
 
 *.swp
 *.pyc
@@ -10,3 +10,5 @@
 */slide_control.cpp
 
 CATKIN_IGNORE
+ROBOTIS/ROBOTIS-MANIPULATOR-H/manipulator_h_gui/log/*
+hand_eye/pic/*

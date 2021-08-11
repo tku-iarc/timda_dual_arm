@@ -6,6 +6,6 @@
 
   <param name ="manipulator_ip_address" value="$(arg manipulator_ip)"/>
 
-  <node name="$hand_eye_calibration_arm_script" pkg="hand_eye" type="hand_eye_calibration.py" output="screen">
+  <node name="hand_eye_calibration_arm_script" pkg="hand_eye" type="hand_eye_calibration.py" output="screen">
   </node>
 </launch>

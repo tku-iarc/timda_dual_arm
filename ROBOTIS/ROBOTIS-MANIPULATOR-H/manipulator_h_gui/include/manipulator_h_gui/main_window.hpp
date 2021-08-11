@@ -89,6 +89,7 @@ public Q_SLOTS:
     void on_curr_pos_button_clicked( bool check );
     void on_des_pos_button_clicked( bool check );
     void on_des_p2p_button_clicked( bool check );
+    void on_des_moveit_button_clicked( bool check );
 
     //===========robotiq_2f_gripper===================
     void on_des_Grap_button_clicked( bool check );
@@ -96,7 +97,9 @@ public Q_SLOTS:
     //===============================================
     
     void on_ini_pose_button_clicked( bool check );
+    void on_home_pose_button_clicked( bool check );
     void on_set_mode_button_clicked( bool check );
+    void on_joy_calib_button_clicked( bool check );
     void on_relative_xp_button_clicked( bool check );
     void on_relative_xm_button_clicked( bool check );
     void on_relative_yp_button_clicked( bool check );
@@ -131,6 +134,7 @@ private:
     QList<QAbstractSpinBox *> joint_spinbox;
 
     double relative_movement_data[7];
+    bool joy_calib_state;
 };
 
 }  // namespace manipulator_h_gui

@@ -93,6 +93,7 @@ MainWindow::MainWindow(int argc, char** argv, QWidget *parent)
   qnode.init();
   setWindowTitle(qnode.getName());
 
+  joy_calib_state = false;
 }
 
 MainWindow::~MainWindow() {}
@@ -224,6 +225,33 @@ void MainWindow::on_des_p2p_button_clicked( bool check )
   qnode.sendP2PPoseMsg( msg );
 }
 
+void MainWindow::on_des_moveit_button_clicked( bool check )
+{
+  manipulator_h_base_module_msgs::P2PPose msg;
+
+  msg.name = "arm";
+
+  msg.speed           = ui.speed_spinbox->value();
+  msg.pose.position.x = ui.pos_x_spinbox->value();
+  msg.pose.position.y = ui.pos_y_spinbox->value();
+  msg.pose.position.z = ui.pos_z_spinbox->value();
+  
+  double roll  = ui.ori_roll_spinbox->value()  * M_PI / 180.0;
+  double pitch = ui.ori_pitch_spinbox->value() * M_PI / 180.0;
+  double yaw   = ui.ori_yaw_spinbox->value()   * M_PI / 180.0;
+  double phi   = ui.ori_phi_spinbox->value()   * M_PI / 180.0;
+  
+  Eigen::Quaterniond QR = rpy2quaternion( roll, pitch, yaw );
+
+  msg.pose.orientation.x = QR.x();
+  msg.pose.orientation.y = QR.y();
+  msg.pose.orientation.z = QR.z();
+  msg.pose.orientation.w = QR.w();
+  msg.phi = phi;
+
+  qnode.sendMoveItPoseMsg( msg );
+}
+
 //=============robotiq_2f_gripper=========================
 void MainWindow::on_des_Grap_button_clicked( bool check )
 {
@@ -242,13 +270,33 @@ void MainWindow::on_des_Release_button_clicked( bool check )
   qnode.sendReleasePoseMsg( msg );
 }
 //=============================================================
+void MainWindow::on_joy_calib_button_clicked( bool check )
+{
+  bool cmd;
+  cmd = (joy_calib_state) ? false : true;
+  joy_calib_state = qnode.joyCalib( cmd );
+  if( joy_calib_state )
+    ui.joy_calib_button->setText("Stop Calib");
+  else
+    ui.joy_calib_button->setText("Joy Calib");
+}
+
 void MainWindow::on_ini_pose_button_clicked( bool check )
 {
   std_msgs::String msg;
 
   msg.data ="ini_pose";
 
-  qnode.sendIniPoseMsg( msg );
+  qnode.sendSpecificPoseMsg( msg );
+}
+
+void MainWindow::on_home_pose_button_clicked( bool check )
+{
+  std_msgs::String msg;
+
+  msg.data ="home_pose";
+
+  qnode.sendSpecificPoseMsg( msg );
 }
 
 void MainWindow::on_set_mode_button_clicked( bool check )

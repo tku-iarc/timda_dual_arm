@@ -27,6 +27,36 @@
 
 using namespace robotis_manipulator_h;
 
+double diff_curr_goal_now[MAX_JOINT_ID+1] = {0};
+double current_now[MAX_JOINT_ID+1] = {0};
+double vel_now[MAX_JOINT_ID+1] = {0};
+
+double curr_goal_offset[MAX_JOINT_ID+1] = {0};
+double current_offset[MAX_JOINT_ID+1] = {0};
+double vel_offset[MAX_JOINT_ID+1] = {0};
+
+double bias_pos[MAX_JOINT_ID+1] = {0};
+double bias_cur[MAX_JOINT_ID+1] = {0};
+double bias_vel[MAX_JOINT_ID+1] = {0};
+
+int if_hit[MAX_JOINT_ID+1] = {0};
+int detect_hit[MAX_JOINT_ID+1] = {0};
+int timer1 = 0;
+
+//condition_var assignment
+std::mutex mutex; 
+std::condition_variable cv; 
+bool ready = false; 
+bool processed = false; 
+//========collision==========
+float totaltime = 0;
+bool init_var = false;
+double avg_cur[7] = {0};
+double avg_cur1,avg_cur2 = 0;
+std::vector<float> data1_offset(3,0);
+std::vector<float> data2_offset(3,0);
+bool data_latch1,data_latch2 = false;
+
 BaseModule::BaseModule()
   : control_cycle_msec_(0)
 {
@@ -75,7 +105,7 @@ void BaseModule::initialize(const int control_cycle_msec, robotis_framework::Rob
   queue_thread_ = boost::thread(boost::bind(&BaseModule::queueThread, this));
 }
 
-void BaseModule::parseIniPoseData(const std::string &path)
+void BaseModule::parsePoseData(const std::string &path)
 {
   YAML::Node doc;
   try
@@ -129,8 +159,8 @@ void BaseModule::queueThread()
                                                 &BaseModule::waitMsgCallback, this);
   ros::Subscriber clear_cmd_sub = ros_node.subscribe("clear_cmd",5,
                                                      &BaseModule::clearCmdCallback, this);
-  ros::Subscriber ini_pose_msg_sub = ros_node.subscribe("ini_pose_msg", 5,
-                                                        &BaseModule::initPoseMsgCallback, this);
+  ros::Subscriber specific_pose_msg_sub = ros_node.subscribe("specific_pose_msg", 5,
+                                                        &BaseModule::specificPoseMsgCallback, this);
   ros::Subscriber set_mode_msg_sub = ros_node.subscribe("set_mode_msg", 5,
                                                         &BaseModule::setModeMsgCallback, this);
 
@@ -139,7 +169,14 @@ void BaseModule::queueThread()
   ros::Subscriber kinematics_pose_msg_sub = ros_node.subscribe("kinematics_pose_msg", 5,
                                                                &BaseModule::kinematicsPoseMsgCallback, this);
   ros::Subscriber p2p_pose_msg_sub = ros_node.subscribe("p2p_pose_msg", 5,
-                                                               &BaseModule::p2pPoseMsgCallback, this);
+                                                         &BaseModule::p2pPoseMsgCallback, this);
+  ros::Subscriber moveit_pose_msg_sub = ros_node.subscribe("moveit_pose_msg", 5,
+                                                               &BaseModule::moveitPoseMsgCallback, this);                                                         
+  ros::Subscriber vector_move_rpy_msg_sub = ros_node.subscribe("vector_move_rpy_msg", 5,
+                                                           &BaseModule::vectorMoveRpyMsgCallback, this);
+
+  ros::Subscriber vector_move_quat_msg_sub = ros_node.subscribe("vector_move_quat_msg", 5,
+                                                           &BaseModule::vectorMoveMsgCallback, this);
 
   ros::ServiceServer get_joint_pose_server = ros_node.advertiseService("get_joint_pose",
                                                                        &BaseModule::getJointPoseCallback, this);
@@ -177,18 +214,18 @@ void BaseModule::clearCmdCallback(const std_msgs::Bool::ConstPtr& msg)
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory");
   }
 }
-void BaseModule::initPoseMsgCallback(const std_msgs::String::ConstPtr& msg)
+void BaseModule::specificPoseMsgCallback(const std_msgs::String::ConstPtr& msg)
 {
   if (enable_ == false)
     return;
 
   if (robotis_->is_moving_ == false)
   {
-    if (msg->data == "ini_pose")
+    if (msg->data != "")
     {
       // parse initial pose
-      std::string ini_pose_path = ros::package::getPath("manipulator_h_base_module") + "/config/ini_pose.yaml";
-      parseIniPoseData(ini_pose_path);
+      std::string pose_path = ros::package::getPath("manipulator_h_base_module") + "/config/" + msg->data + ".yaml";
+      parsePoseData(pose_path);
 
       tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateInitPoseTrajProcess, this));
       delete tra_gene_thread_;
@@ -208,10 +245,31 @@ void BaseModule::setModeMsgCallback(const std_msgs::String::ConstPtr& msg)
     stop();
   else
   {
+    slide_->slide_init();
     std_msgs::String str_msg;
     str_msg.data = "base_module";
 
     set_ctrl_module_pub_.publish(str_msg);
+    while(enable_ == false)
+    {
+      usleep(1000);
+    }
+    // if (robotis_->is_moving_ == false)
+    // {
+    //   // parse initial pose
+    //   std::string ini_pose_path = ros::package::getPath("manipulator_h_base_module") + "/config/ini_pose.yaml";
+    //   parsePoseData(ini_pose_path);
+
+    //   tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateInitPoseTrajProcess, this));
+    //   delete tra_gene_thread_;
+    // }
+    // else
+    // {
+    //   ROS_INFO("previous task is alive");
+    // }
+  
+  return;
+
   }
   return;
 }
@@ -359,7 +417,7 @@ void BaseModule::p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPos
   robotis_->is_ik = true;
   
   bool    slide_success = manipulator_->slideInverseKinematics(p2p_positoin, p2p_rotation, 
-                                                            slide_->slide_pos, slide_->goal_slide_pos);
+                                                            slide_->slide_pos, slide_->goal_slide_pos, true);
 
   // std::cout<<"<<<<<<<<<<<<<<<<<<<slide_->goal_slide_pos<<<<<<<<<<<<<<<<<"<<std::endl<<slide_->goal_slide_pos<<std::endl;
   bool    ik_success = manipulator_->inverseKinematics(robotis_->ik_id_end_,
@@ -375,7 +433,10 @@ void BaseModule::p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPos
       p2p_msg.value.push_back(manipulator_->manipulator_link_data_[id]->joint_angle_);
     }
     p2p_msg.slide_pos = slide_->goal_slide_pos;
-    p2p_msg.speed     = robotis_->p2p_pose_msg_.speed;
+    if (robotis_->p2p_pose_msg_.speed > 1 && robotis_->p2p_pose_msg_.speed <= 100)
+      p2p_msg.speed = robotis_->p2p_pose_msg_.speed;
+    else
+      p2p_msg.speed = robotis_->move_speed_;
     robotis_->joint_pose_msg_ = p2p_msg;
 
     if (robotis_->is_moving_ == false)
@@ -394,6 +455,93 @@ void BaseModule::p2pPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPos
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory (p2p IK Failed)");
     return;
   }
+  robotis_->is_ik = false;
+  return;
+}
+
+void BaseModule::vectorMoveMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg)
+{
+  if(enable_ == false || robotis_->is_planning_ == true)
+    return;
+  if(msg->moving_vector.size() != 8)
+  {
+    ROS_INFO("moving_vector Size Error!!!");
+    return;
+  }
+  bool limit_success = false;
+  bool ik_success = false;
+  bool slide_success = false;
+  Eigen::Matrix3d target_rotation;
+  Eigen::Vector3d target_position;
+  Eigen::VectorXf moving_vector(8);
+  Eigen::Quaterniond curr_quaternion = robotis_framework::convertRotationToQuaternion(manipulator_->manipulator_link_data_[END_LINK]->orientation_);
+
+  for(int i = 0; i < msg->moving_vector.size(); i++)
+    moving_vector[i] = (fabs(msg->moving_vector[i]) > 1) ? (msg->moving_vector[i] < 0) ? -1 : 1 : msg->moving_vector[i];
+
+  target_position << manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(0, 0) + moving_vector[0]/1000,
+                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(1, 0) + moving_vector[1]/1000,
+                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(2, 0) + moving_vector[2]/1000;
+
+  Eigen::Quaterniond target_quaterniond(curr_quaternion.w() + moving_vector[3]/1000,
+                                        curr_quaternion.x() + moving_vector[4]/1000,
+                                        curr_quaternion.y() + moving_vector[5]/1000,
+                                        curr_quaternion.z() + moving_vector[6]/1000);
+  target_quaterniond = target_quaterniond.normalized();
+  double target_phi = manipulator_->manipulator_link_data_[END_LINK]->phi_ + moving_vector[7]/1000;
+  target_rotation = robotis_framework::convertQuaternionToRotation(target_quaterniond);
+
+  manipulator_->manipulator_link_data_[0]->mov_speed_ = 800;
+  // limit_success = manipulator_->limit_check(target_position, target_rotation);
+  robotis_->is_ik = true;
+  slide_success = manipulator_->slideInverseKinematics(target_position, target_rotation, slide_->slide_pos, slide_->goal_slide_pos, true);
+  ik_success = manipulator_->inverseKinematics(END_LINK, target_position, target_rotation, target_phi, slide_->goal_slide_pos, true);
+
+  if (ik_success && slide_success)
+    this->vectorMove();
+  robotis_->is_ik = false;
+  return;
+}
+void BaseModule::vectorMoveRpyMsgCallback(const manipulator_h_base_module_msgs::VectorMove::ConstPtr& msg)
+{
+  if (enable_ == false || robotis_->is_planning_ == true)
+    return;
+
+  if(msg->moving_vector.size() != 7)
+  {
+    ROS_INFO("moving_vector Size Error!!!");
+    return;
+  }
+  bool limit_success = false;
+  bool ik_success = false;
+  bool slide_success = false;
+  Eigen::Vector3d target_position;
+  Eigen::Vector3d target_rpy;
+  Eigen::VectorXf moving_vector(8);
+  
+  for(int i = 0; i < msg->moving_vector.size(); i++)
+    moving_vector[i] = (fabs(msg->moving_vector[i]) > 1) ? (msg->moving_vector[i] < 0) ? -1 : 1 : msg->moving_vector[i];
+  manipulator_->manipulator_link_data_[0]->slide_position_ = slide_->slide_pos;
+  for (int id = 1; id <= MAX_JOINT_ID; id++)
+    manipulator_->manipulator_link_data_[id]->joint_angle_ = joint_state_->goal_joint_state_[id].position_;
+  manipulator_->forwardKinematics(7);  // 0 chang to 7 : how many joint
+  target_position << manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(0, 0) + moving_vector[0]/100,
+                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(1, 0) + moving_vector[1]/100,
+                     manipulator_->manipulator_link_data_[END_LINK]->position_.coeff(2, 0) + moving_vector[2]/100;
+  target_rpy      << manipulator_->manipulator_link_data_[END_LINK]->euler.coeff(0, 0) + moving_vector[3]/100,
+                     manipulator_->manipulator_link_data_[END_LINK]->euler.coeff(1, 0) + moving_vector[4]/100,
+                     manipulator_->manipulator_link_data_[END_LINK]->euler.coeff(2, 0) + moving_vector[5]/100;
+
+  double target_phi = manipulator_->manipulator_link_data_[END_LINK]->phi_ + moving_vector[6]/100;
+  Eigen::Matrix3d target_rotation = manipulator_->rpy2rotation(target_rpy.coeff(0, 0), target_rpy.coeff(1, 0), target_rpy.coeff(2, 0));
+
+  manipulator_->manipulator_link_data_[0]->mov_speed_ = 800;
+  robotis_->is_ik = true;
+  slide_success = manipulator_->slideInverseKinematics(target_position, target_rotation, slide_->slide_pos, slide_->goal_slide_pos, true);
+  ik_success = manipulator_->inverseKinematics(END_LINK, target_position, target_rotation, target_phi, slide_->goal_slide_pos, true);
+
+  if (ik_success && slide_success)
+    this->vectorMove();
   robotis_->is_ik = false;
   return;
 }
@@ -418,11 +566,201 @@ void BaseModule::jointPoseMsgCallback(const manipulator_h_base_module_msgs::Join
   return;
 }
 
+void BaseModule::moveitPoseMsgCallback(const manipulator_h_base_module_msgs::P2PPose::ConstPtr& msg)
+{
+  moveit_msgs::MoveGroupResult Result;
+  std::vector<double> moveit_goal;
+  if (enable_ == false)
+    return;
+
+  robotis_->p2p_pose_msg_ = *msg;
+
+  robotis_->ik_id_start_ = 0;
+  robotis_->ik_id_end_   = END_LINK;
+
+  Eigen::Vector3d p2p_positoin;
+  Eigen::Matrix3d p2p_rotation;
+
+  int     max_iter    = 30;
+  double  ik_tol      = 1e-3;
+
+  p2p_positoin << robotis_->p2p_pose_msg_.pose.position.x, 
+                  robotis_->p2p_pose_msg_.pose.position.y, 
+                  robotis_->p2p_pose_msg_.pose.position.z;
+
+  Eigen::Quaterniond p2p_quaterniond(robotis_->p2p_pose_msg_.pose.orientation.w,
+                                        robotis_->p2p_pose_msg_.pose.orientation.x,
+                                        robotis_->p2p_pose_msg_.pose.orientation.y,
+                                        robotis_->p2p_pose_msg_.pose.orientation.z);
+
+  double p2p_phi = robotis_->p2p_pose_msg_.phi;
+
+  p2p_rotation = robotis_framework::convertQuaternionToRotation(p2p_quaterniond);
+
+  manipulator_->forwardKinematics(7);
+  // std::cout<<"p2p_positoinp2p_positoin"<<std::endl<<p2p_positoin<<std::endl;
+  // std::cout<<"p2p_rotationp2p_rotation"<<std::endl<<p2p_rotation<<std::endl;
+
+  robotis_->is_ik = true;
+  
+  bool    slide_success = manipulator_->slideInverseKinematics(p2p_positoin, p2p_rotation, 
+                                                            slide_->slide_pos, slide_->goal_slide_pos, true);
+
+  // std::cout<<"<<<<<<<<<<<<<<<<<<<slide_->goal_slide_pos<<<<<<<<<<<<<<<<<"<<std::endl<<slide_->goal_slide_pos<<std::endl;
+  bool    ik_success = manipulator_->inverseKinematics(robotis_->ik_id_end_,
+                                                            p2p_positoin, p2p_rotation, p2p_phi, slide_->goal_slide_pos, true);
+  if (ik_success == true && slide_success == true)
+  {  
+    Eigen::MatrixXd tra_points;
+    if (robotis_->is_moving_ == false)
+    {
+      manipulator_h_base_module_msgs::JointPose p2p_msg;
+      moveit_goal.push_back(slide_->goal_slide_pos);
+      for (int i=1;i<8;i++)
+        moveit_goal.push_back(manipulator_->manipulator_link_data_[i]->joint_angle_);
+      
+      moveitClient(moveit_goal,Result);
+      ROS_INFO("Action Sending Back All Result.");
+      // boost::this_thread::sleep(boost::posix_time::seconds(2)); 
+      int j = 0;
+      int k = Result.planned_trajectory.joint_trajectory.points.size();
+      for ( int id = 1; id <= MAX_JOINT_ID; id++ )
+        p2p_msg.name.push_back(manipulator_->manipulator_link_data_[id]->name_);
+      if (robotis_->is_moving_ == false){
+        for(int i = 0;i<k;i++){
+            for ( int j = 1; j <8; j++ )
+                p2p_msg.value.push_back(Result.planned_trajectory.joint_trajectory.points[i].positions[j]);
+                
+              
+            p2p_msg.slide_pos = Result.planned_trajectory.joint_trajectory.points[i].positions[0];
+            if (robotis_->p2p_pose_msg_.speed > 1 && robotis_->p2p_pose_msg_.speed <= 100)
+              p2p_msg.speed = robotis_->p2p_pose_msg_.speed;
+            else
+              p2p_msg.speed = robotis_->move_speed_;
+            if (i>0)
+              slide_->slide_pos = Result.planned_trajectory.joint_trajectory.points[i-1].positions[0];
+            robotis_->joint_pose_msg_ = p2p_msg;
+            std::cout<<"start_Tra"<<std::endl;
+            tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateJointTrajProcess, this));
+    
+            
+            robotis_->cnt_ = 0;
+            p2p_msg.value.clear();
+            // p2p_msg.slide_pos.clear();
+            std::cout<<"-----------------"<<p2p_msg.slide_pos<<"-----------------"<<std::endl;
+            delete tra_gene_thread_;
+            //condition_var for lock
+            std::unique_lock<std::mutex> lock(mutex);
+            cv.wait(lock, [] {return ready; });
+            lock.unlock();
+            ready = false; 
+        }
+
+      }
+    } 
+    else
+    {
+      ROS_INFO("previous task is alive");
+    }
+    
+  }
+  else
+  {
+    ROS_INFO("[end] send trajectory (ik failed)");
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory (p2p IK Failed)");
+    return;
+  }
+  robotis_->is_ik = false;
+  return;
+  
+}
+
+void BaseModule::moveitClient(std::vector<double> moveit_goal,moveit_msgs::MoveGroupResult &Result){
+
+
+  actionlib::SimpleActionClient<moveit_msgs::MoveGroupAction> move_action_client_("/move_group");
+
+  move_action_client_.waitForServer(ros::Duration(30.0));
+  
+  ROS_INFO("Connected to move_action server");
+  
+  for (int i=0;i<8;i++){
+      std::cout<<"======="<<std::setprecision(8)<<moveit_goal[i]<<"=========="<<std::endl;
+    }
+  ROS_INFO("Action server started.");
+  moveit_msgs::MoveGroupGoal goal;
+  moveit_msgs::JointConstraint jc;
+  moveit_msgs::Constraints ct;
+  //moveit_msgs::MoveGroupResult Result;
+
+  goal.request.workspace_parameters.header.frame_id= "world";
+  goal.request.workspace_parameters.min_corner.x= -1;
+  goal.request.workspace_parameters.min_corner.y= -1;
+  goal.request.workspace_parameters.min_corner.z= -1;
+  goal.request.workspace_parameters.max_corner.x=  1;
+  goal.request.workspace_parameters.max_corner.y=  1;
+  goal.request.workspace_parameters.max_corner.z=  1;
+
+  ct.name = " ";
+  goal.request.goal_constraints.push_back(ct);
+  jc.joint_name = "joint_left";
+  jc.position= moveit_goal[0];
+  jc.tolerance_above = 0.0001;
+  jc.tolerance_below = 0.0001;
+  jc.weight= 1;
+  goal.request.goal_constraints[0].joint_constraints.push_back(jc);
+
+  goal.request.group_name = "left_arm";
+  goal.request.num_planning_attempts = 30;
+  goal.request.allowed_planning_time = 10000;
+  goal.request.max_velocity_scaling_factor = 0.01;
+  goal.request. max_acceleration_scaling_factor = 0.01;
+
+
+  goal.request.start_state.is_diff =1;
+  goal.planning_options.planning_scene_diff.robot_state.is_diff =1;
+  for(int i=1;i<8;i++){
+    jc.joint_name = "l_joint_"+std::to_string(i);
+    jc.position= moveit_goal[i];
+    jc.tolerance_above = 0.0001;
+    jc.tolerance_below = 0.0001;
+    jc.weight= 1;
+    goal.request.goal_constraints[0].joint_constraints.push_back(jc);
+    }
+
+  move_action_client_.sendGoalAndWait(goal);
+  ROS_INFO("start send goal to Moveit");
+  bool finished_before_timeout = move_action_client_.waitForResult(ros::Duration(30.0));
+
+  if (finished_before_timeout)                             
+  {
+
+    actionlib::SimpleClientGoalState state = move_action_client_.getState();
+    ROS_INFO("Action finished: %s",state.toString().c_str());
+    Result = *move_action_client_.getResult();
+    return;
+  }
+  else
+  {
+    ROS_ERROR("Failed to call service");
+    return;
+  }
+  ROS_INFO("Action did not finish before the time out.");
+
+  
+  //shutdown the node and join the thread back before exiting
+  //ros::shutdown();
+  //spin_thread.join();
+  
+  return;
+
+}
+
 void BaseModule::generateInitPoseTrajProcess()
 {
   if (enable_ == false)
     return;
-
+  robotis_->is_planning_ = true;
   for (int id = 1; id <= MAX_JOINT_ID; id++)
   {
     double ini_value = joint_state_->goal_joint_state_[id].position_;
@@ -447,11 +785,17 @@ void BaseModule::generateJointTrajProcess()
 {
   if (enable_ == false)
     return;
-
+  robotis_->is_planning_ = true;
   /* set movement time */
-  double mov_speed = robotis_->joint_pose_msg_.speed;
+
+  double mov_speed;
+  if (robotis_->joint_pose_msg_.speed > 1 && robotis_->joint_pose_msg_.speed <= 100)
+    mov_speed = robotis_->joint_pose_msg_.speed;
+  else
+    mov_speed = robotis_->move_speed_;
   double tol = 90 * (mov_speed / 100) * DEGREE2RADIAN; // rad per sec
   double mov_time = 1.5;
+  
 
   double max_diff, abs_diff, slide_diff;
   slide_diff = fabs(robotis_->joint_pose_msg_.slide_pos - slide_->slide_pos);
@@ -479,6 +823,7 @@ void BaseModule::generateJointTrajProcess()
     if (max_diff < abs_diff)
       max_diff = abs_diff;
   }
+  std::cout<<"joint_angle in generateJointTrajProcess: "<<robotis_->joint_pose_msg_.value[3]<<std::endl;
 
   robotis_->mov_time_ = max_diff / tol;
   int all_time_steps = int(floor((robotis_->mov_time_ / robotis_->smp_time_) + 1.0));
@@ -524,11 +869,18 @@ void BaseModule::generateJointTrajProcess()
 
 void BaseModule::generateTaskTrajProcess()
 {
+  robotis_->is_planning_ = true;
+
   /* set movement time */
-  double mov_speed = robotis_->kinematics_pose_msg_.speed;
+  double mov_speed;
+  if (robotis_->kinematics_pose_msg_.speed > 1 && robotis_->kinematics_pose_msg_.speed <= 100)
+    mov_speed = robotis_->kinematics_pose_msg_.speed;
+  else
+    mov_speed = robotis_->move_speed_;
   double tol = 0.3 * (mov_speed / 100); // m per sec
   double mov_time = 1.5;
   double slide_diff;
+  
 
   manipulator_->manipulator_link_data_[0]->mov_speed_ = mov_speed;
 
@@ -545,10 +897,10 @@ void BaseModule::generateTaskTrajProcess()
   Eigen::Matrix3d goal_rotation = robotis_framework::convertQuaternionToRotation(goal_quaterniond);
 
   bool ik_success = manipulator_->slideInverseKinematics(goal_positoin, goal_rotation, 
-                                                            slide_->slide_pos, slide_->goal_slide_pos);
+                                                            slide_->slide_pos, slide_->goal_slide_pos, true);
 
-  slide_diff = fabs(robotis_->joint_pose_msg_.slide_pos - slide_->slide_pos) * 2;  //slide 1 cm = arm 2 cm to calculate
-
+  // slide_diff = fabs(robotis_->joint_pose_msg_.slide_pos - slide_->slide_pos) * 2;  //slide 1 cm = arm 2 cm to calculate
+  slide_diff = fabs(slide_->goal_slide_pos - slide_->slide_pos) * 2;
   double diff = sqrt(
                       pow(manipulator_->manipulator_link_data_[robotis_->ik_id_end_]->position_.coeff(0, 0)
                           - robotis_->kinematics_pose_msg_.pose.position.x, 2)
@@ -556,7 +908,7 @@ void BaseModule::generateTaskTrajProcess()
                           - robotis_->kinematics_pose_msg_.pose.position.y, 2)
                     + pow(manipulator_->manipulator_link_data_[robotis_->ik_id_end_]->position_.coeff(2, 0)
                           - robotis_->kinematics_pose_msg_.pose.position.z, 2)
-                );
+                    );
   diff = (diff < slide_diff) ? slide_diff : diff;
 
   robotis_->mov_time_ = diff / tol;
@@ -606,9 +958,89 @@ void BaseModule::generateTaskTrajProcess()
 
     robotis_->is_moving_ = false;
     robotis_->ik_solve_ = false;
+    robotis_->is_planning_ = false;
     robotis_->cnt_ = 0;
   }
 
+}
+
+void BaseModule::vectorMove()
+{
+  if (enable_ == false)
+    return;
+  bool max_diff_is_slide = true;
+  double mov_speed = 100;
+  double tol = 90 * (mov_speed / 100) * DEGREE2RADIAN; // rad per sec
+  double mov_time = 0.2;
+  double max_diff, abs_diff, slide_diff;
+  slide_diff = fabs(slide_->goal_slide_pos - slide_->slide_pos) * 2;
+  max_diff = slide_diff * 1000 * DEGREE2RADIAN;  //slide 5 cm = motor 10 degree to calculate
+  slide_diff = max_diff;
+
+  
+  for (int id = 1; id <= MAX_JOINT_ID; id++)
+  {
+    abs_diff = fabs(manipulator_->manipulator_link_data_[id]->joint_angle_ - joint_state_->goal_joint_state_[id].position_);
+    if (max_diff < abs_diff)
+      max_diff = abs_diff;
+    if (id < MAX_JOINT_ID && abs_diff > 1.57)
+        max_diff_is_slide = false;
+  }
+
+  robotis_->mov_time_ = max_diff / tol;
+  int all_time_steps = int(floor((robotis_->mov_time_ / robotis_->smp_time_) + 1.0));
+  robotis_->mov_time_ = double(all_time_steps - 1) * robotis_->smp_time_;
+
+  if (robotis_->mov_time_ < mov_time)
+    robotis_->mov_time_ = mov_time;
+  all_time_steps = int(robotis_->mov_time_ / robotis_->smp_time_) + 1;
+
+  robotis_->is_moving_ = false;
+
+  if(all_time_steps > 100)
+  {
+    if(!max_diff_is_slide)
+    {
+      std::cout<<"Vector Move Fail!!!"<<std::endl;
+      return;
+    }
+    manipulator_h_base_module_msgs::JointPose p2p_msg;
+    for ( int id = 1; id <= MAX_JOINT_ID; id++ )
+    {
+      p2p_msg.name.push_back(manipulator_->manipulator_link_data_[id]->name_);
+      p2p_msg.value.push_back(manipulator_->manipulator_link_data_[id]->joint_angle_);
+    }
+    p2p_msg.slide_pos = slide_->goal_slide_pos;
+    p2p_msg.speed     = mov_speed;
+    robotis_->joint_pose_msg_ = p2p_msg;
+    tra_gene_thread_ = new boost::thread(boost::bind(&BaseModule::generateJointTrajProcess, this));
+    delete tra_gene_thread_;
+    return;
+  }
+
+  robotis_->calc_joint_tra_.resize(all_time_steps, MAX_JOINT_ID + 1);
+  /* calculate joint trajectory */
+  for (int id = 1; id <= MAX_JOINT_ID; id++)
+  {
+    robotis_->calc_joint_tra_.block(0, id, all_time_steps, 1) = 
+            linearInterpolation(all_time_steps, joint_state_->goal_joint_state_[id].position_, 
+                                manipulator_->manipulator_link_data_[id]->joint_angle_);
+  }
+  robotis_->calc_slide_tra_.resize(all_time_steps, 1);
+  robotis_->calc_slide_tra_ = linearInterpolation(all_time_steps, slide_->slide_pos, slide_->goal_slide_pos);  
+  robotis_->all_time_steps_ = (all_time_steps < 30) ? all_time_steps : 30;
+  robotis_->cnt_ = 0;
+  robotis_->is_moving_ = true;
+  
+  // robotis_->all_time_steps_ = 1;
+  // robotis_->calc_joint_tra_.resize(robotis_->all_time_steps_, MAX_JOINT_ID + 1);
+  // for (int id = 1; id <= MAX_JOINT_ID; id++)
+  //   robotis_->calc_joint_tra_(0, id) = manipulator_->manipulator_link_data_[id]->joint_angle_;
+    
+  // robotis_->calc_slide_tra_(0, 0) = slide_->goal_slide_pos;
+  // robotis_->cnt_ = 0;
+  // robotis_->is_moving_ = true;
+  return;
 }
 
 void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> dxls,
@@ -644,14 +1076,13 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
     manipulator_->manipulator_link_data_[0]->slide_position_ = slide_->slide_pos;
     for (int id = 1; id <= MAX_JOINT_ID; id++)
       manipulator_->manipulator_link_data_[id]->joint_angle_ = joint_state_->goal_joint_state_[id].position_;
+    manipulator_->forwardKinematics(7);  // 0 chang to 7 : how many joint
   }
-
-  manipulator_->forwardKinematics(7);  // 0 chang to 7 : how many joint
 
   //slide_->slide_pos = manipulator_->manipulator_link_data_[0]->slide_position_;
   /* ----- send trajectory ----- */
 
-//    ros::Time time = ros::Time::now();
+  //    ros::Time time = ros::Time::now();
   if (robotis_->is_moving_ == true && robotis_->cnt_ < robotis_->all_time_steps_)
   {
     if (robotis_->cnt_ == 0)
@@ -680,10 +1111,8 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
         slide_->result_slide_pos = robotis_->calc_slide_tra_(robotis_->cnt_, 0);
         if(manipulator_->manipulator_link_data_[0]->singularity_ && robotis_->cnt_ > 1)
         {
-          std::cout<<"====robotis_->cnt_====="<<robotis_->cnt_<<" ";
           robotis_->cnt_--;
           // robotis_->cnt_ = (robotis_->cnt_ > 1) ? (robotis_->cnt_-1) : robotis_->cnt_;
-          std::cout<<robotis_->cnt_<<std::endl;
         }
           // std::cout<<"==========================process after ik"<<std::endl;
           // manipulator_->forwardKinematics(7);
@@ -696,6 +1125,7 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
 
         robotis_->is_moving_ = false;
         robotis_->ik_solve_ = false;
+        robotis_->is_planning_ = false;
         robotis_->cnt_ = 0;
       }
       robotis_->is_ik = false;
@@ -704,7 +1134,7 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
     {
       for (int id = 1; id <= MAX_JOINT_ID; id++)
         joint_state_->goal_joint_state_[id].position_ = robotis_->calc_joint_tra_(robotis_->cnt_, id);
-      slide_->goal_slide_pos = robotis_->calc_slide_tra_(robotis_->cnt_, 0);
+      // slide_->goal_slide_pos = robotis_->calc_slide_tra_(robotis_->cnt_, 0);
       slide_->result_slide_pos = robotis_->calc_slide_tra_(robotis_->cnt_, 0);
     }
 
@@ -728,6 +1158,7 @@ void BaseModule::process(std::map<std::string, robotis_framework::Dynamixel *> d
     publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "End Trajectory");
     robotis_->is_moving_ = false;
     robotis_->ik_solve_ = false;
+    robotis_->is_planning_ = false;
     robotis_->cnt_ = 0;
   }
 }
@@ -736,6 +1167,7 @@ void BaseModule::stop()
 {
   robotis_->is_moving_ = false;
   robotis_->ik_solve_ = false;
+  robotis_->is_planning_ = false;
   robotis_->cnt_ = 0;
 
   manipulator_h_base_module_msgs::JointPose stop_msg;
@@ -758,6 +1190,7 @@ void BaseModule::stop()
     delete tra_gene_thread_;
     stop_flag = true;
     ROS_INFO("!!!!Stop robot arm!!!!");
+    publishStatusMsg(robotis_controller_msgs::StatusMsg::STATUS_INFO, "Emergency Stop");
   }
   return;
 }
@@ -780,16 +1213,26 @@ void BaseModule::publishStatusMsg(unsigned int type, std::string msg)
 
 void BaseModule::generateSlideTrajProcess()
 {
-  double ini_slide_value;
-  double tar_slide_value;
+  // double ini_slide_value;
+  // double tar_slide_value;
 
 
 
-  ini_slide_value = slide_->slide_pos;
-  tar_slide_value = slide_->goal_slide_pos;
+  // ini_slide_value = slide_->slide_pos;
+  // tar_slide_value = slide_->goal_slide_pos;
 
-  Eigen::MatrixXd tra = robotis_framework::calcMinimumJerkTra(ini_slide_value, 0.0, 0.0, tar_slide_value, 0.0, 0.0,
+  Eigen::MatrixXd tra = robotis_framework::calcMinimumJerkTra(slide_->slide_pos, 0.0, 0.0, slide_->goal_slide_pos, 0.0, 0.0,
                                                                 robotis_->smp_time_, robotis_->mov_time_);
   robotis_->calc_slide_tra_.resize(robotis_->all_time_steps_, 1);
   robotis_->calc_slide_tra_ = tra;  
+}
+
+Eigen::MatrixXd BaseModule::linearInterpolation(int& step, double& init, double& end)
+{
+  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(step, 1);
+  for(int i = 0; i < step; i++)
+  {
+    result(i, 0) = ((double)i / (double)step) * (end - init) + init;
+  }
+  return result;
 }

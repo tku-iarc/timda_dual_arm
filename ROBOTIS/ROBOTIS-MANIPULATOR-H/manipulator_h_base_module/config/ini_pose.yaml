@@ -1,6 +1,6 @@
 # time parameter
 
-mov_time : 3.0		# movement time
+mov_time : 5.0		# movement time
 
 # target pose [deg]
 
@@ -14,9 +14,9 @@ tar_pose :
 #  7 : 0.0	# joint 6
   0 : 0.0 # slide
   1 : 0.0	# joint 1
-  2 : 0.0	# joint 2
+  2 : -20.0	# joint 2
   3 : 0.0	# joint 3
-  4 : 0.0	# joint 4
+  4 : 40.0	# joint 4
   5 : 0.0	# joint 5
-  6 : 0.0	# joint 6
+  6 : -20.0	# joint 6
   7 : 0.0	# joint 7
