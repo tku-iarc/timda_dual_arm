@@ -2,18 +2,16 @@
 
 import rospy
 import tf
-from flexbe_core import EventState, Logger
+from flexbe_core import EventState
 from flexbe_core.proxy import ProxyPublisher, ProxySubscriberCached
 
-from std_msgs.msg import String, Float64, Bool
+from std_msgs.msg import Bool
 from robotis_controller_msgs.msg import StatusMsg
 from math import pi, radians
 from enum import IntEnum
 # from manipulator_h_base_module_msgs.msg import IK_Cmd, JointPose
-from manipulator_h_base_module_msgs.msg import P2PPose, JointPose, KinematicsPose
-from manipulator_h_base_module_msgs.srv import GetKinematicsPose, GetKinematicsPoseResponse
-from manipulator_h_base_module_msgs.srv import GetJointPose, GetJointPoseResponse
-from manipulator_h_base_module_msgs.srv import CheckRangeLimit, CheckRangeLimitRequest
+from manipulator_h_base_module_msgs.msg import P2PPose, KinematicsPose
+
 
 
 '''
@@ -33,30 +31,35 @@ class Status(IntEnum):
 	ik_fail         = 3
 	finish          = 4
 
-class RobotMoveState(EventState):
+class FixedPoseMoveState(EventState):
 	'''
-	Uses MoveIt to plan and move the specified joints to the target configuration.
+	Move robot with a fixed pose.
 
 	-- robot_name               string          Robots name to move
 	-- en_sim					bool			Use real robot or Gazebo
-
-	># robot_cmd                command(dict)   See arm_task.py
+	-- pos				        float[]			[x, y, z] in meters
+	-- euler					float[]			[roll, pitch, yaw] in degrees
+	-- mode					    string			line or p2p
+	-- speed					float			moving speed
 
 	<= done 									Robot move done.
 	<= failed 									Robot move failed.
 	'''
 
 
-	def __init__(self, robot_name, en_sim):
+	def __init__(self, robot_name, en_sim, mode, speed, pos, euler, phi):
 		'''
 		Constructor
 		'''
-		super(RobotMoveState, self).__init__(outcomes=['done', 'failed'],
-											input_keys=['robot_cmd'])
+		super(FixedPoseMoveState, self).__init__(outcomes=['done', 'failed'])
 
 		self.robot_name = robot_name
 		self.en_sim = en_sim
-		self.suction_angle = 0
+		self.mode = mode
+		self.pos = pos
+		self.euler = euler
+		self.speed = speed
+		self.phi = phi
 		self.status = Status.idle
 		self.__set_pubSub()
 
@@ -145,14 +148,16 @@ class RobotMoveState(EventState):
 			return 'failed'
 
 	def on_enter(self, userdata):
-		mode = userdata.robot_cmd['mode']
-		speed = userdata.robot_cmd['speed']
-		pos = userdata.robot_cmd['pos']
-		euler = userdata.robot_cmd['euler']
-		quat = userdata.robot_cmd['quat']
-		phi = userdata.robot_cmd['phi']
+		assert len(self.pos) == 3 and len(self.euler) == 3
+		mode = self.mode
+		speed = self.speed
+		pos = self.pos
+		euler = self.euler
+		quat = None
+		phi = self.phi
 		print(userdata)
 		self.status = Status.busy
+		self.__status_sub.remove_last_msg(self.arm_status_topic)
 		self.ikMove(mode, pos, euler, phi, quat, speed)
 		
 	def stop(self):
