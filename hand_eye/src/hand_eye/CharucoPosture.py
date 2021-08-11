@@ -58,20 +58,20 @@ class CharucoBoardPosture():
         config.optionxform = str
         rospack = rospkg.RosPack()
         self.curr_path = rospack.get_path('hand_eye')
-        config.read(self.curr_path + '/config/img_trans.ini')
+        config.read(self.curr_path + '/config/right_arm_img_trans.ini')
         # curr_path = os.path.dirname(os.path.abspath(__file__))
         # config = ConfigParser.ConfigParser()
         # path = curr_path + '\..\config\img_trans.ini'
         # config.read(path)
-        b00 = float(config.get("Internal", "Key_1_1"))
-        b01 = float(config.get("Internal", "Key_1_2"))
-        b02 = float(config.get("Internal", "Key_1_3"))
-        b10 = float(config.get("Internal", "Key_2_1"))
-        b11 = float(config.get("Internal", "Key_2_2"))
-        b12 = float(config.get("Internal", "Key_2_3"))
-        b20 = float(config.get("Internal", "Key_3_1"))
-        b21 = float(config.get("Internal", "Key_3_2"))
-        b22 = float(config.get("Internal", "Key_3_3"))
+        b00 = float(config.get("Internal_1920_1080", "Key_1_1"))
+        b01 = float(config.get("Internal_1920_1080", "Key_1_2"))
+        b02 = float(config.get("Internal_1920_1080", "Key_1_3"))
+        b10 = float(config.get("Internal_1920_1080", "Key_2_1"))
+        b11 = float(config.get("Internal_1920_1080", "Key_2_2"))
+        b12 = float(config.get("Internal_1920_1080", "Key_2_3"))
+        b20 = float(config.get("Internal_1920_1080", "Key_3_1"))
+        b21 = float(config.get("Internal_1920_1080", "Key_3_2"))
+        b22 = float(config.get("Internal_1920_1080", "Key_3_3"))
 
         self.cameraMatrix = np.mat([[b00, b01, b02],
                                     [b10, b11, b12],

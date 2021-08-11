@@ -9,7 +9,6 @@
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from dual_arm_flexbe_states.IK_move import IKMoveState
-from dual_arm_flexbe_states.capture_charuco import CaptureCharUcoState
 from dual_arm_flexbe_states.fixed_joint_move import FixedJointMoveState
 from dual_arm_flexbe_states.fixed_pose_move import FixedPoseMoveState
 from dual_arm_flexbe_states.get_pose import GetPoseState
@@ -24,15 +23,15 @@ from dual_arm_flexbe_states.init_robot import InitRobotState
 Created on Tue Aug 10 2021
 @author: Andy
 '''
-class HandEyeCalibSM(Behavior):
+class SingleArmSampleSM(Behavior):
 	'''
-	Use ChArUco to calibrate hand-eye transform
+	Sample behavior of single arm moving
 	'''
 
 
 	def __init__(self):
-		super(HandEyeCalibSM, self).__init__()
-		self.name = 'Hand Eye Calib'
+		super(SingleArmSampleSM, self).__init__()
+		self.name = 'Single Arm Sample'
 
 		# parameters of this behavior
 		self.add_parameter('robot_name', 'right_arm')
@@ -66,12 +65,6 @@ class HandEyeCalibSM(Behavior):
 										transitions={'done': 'fixed_joints_test', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:685 y:114
-			OperatableStateMachine.add('calib',
-										CaptureCharUcoState(robot_name=self.robot_name),
-										transitions={'done': 'get_pose', 'fail': 'failed'},
-										autonomy={'done': Autonomy.Off, 'fail': Autonomy.Off})
-
 			# x:98 y:41
 			OperatableStateMachine.add('fixed_joints_test',
 										FixedJointMoveState(robot_name=self.robot_name, en_sim=self.en_sim, speed=100, slide_pos=0, joints=[0, -30, 0, 60, 0, -30, 0]),
@@ -94,7 +87,7 @@ class HandEyeCalibSM(Behavior):
 			# x:959 y:36
 			OperatableStateMachine.add('move_robot',
 										IKMoveState(robot_name=self.robot_name, en_sim=self.en_sim),
-										transitions={'done': 'calib', 'failed': 'failed'},
+										transitions={'done': 'get_pose', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robot_cmd': 'robot_cmd'})
 
