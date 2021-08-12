@@ -3,9 +3,10 @@
 from flexbe_core import EventState, Logger
 from arm_control import Command
 
-left_c_pose = [[[0.00, 0.3363, -0.5000],   [-90.000, 0.000, 0.000],  0],
-               [[0.20, 0.3363, -0.5000],   [-90.000, 0.000, 0.000],  0],
-               [[0.20, 0.2363, -0.5000],   [-90.000, 0.000, 0.000],  0]]
+left_c_pose = [[[0.30, 0.2363, -0.5000],   [-90.000, 0.000, 0.000],  0],
+               [[0.30, 0.2363, -0.5000],   [-90.000, 0.000, 0.000],  0],
+               [[0.30, 0.2363, -0.5000],   [-90.000, 0.000, 0.000],  0],
+               [[0.1807, 0.4337, -0.6569], [19.196, 0.427, -0.086],  0]]
 
 c_pose = {'left_arm' : left_c_pose,
           'right_arm': [[[0.38,  0.21, 0.15],  [0.0, 65, 0.0]],
@@ -15,7 +16,7 @@ c_pose = {'left_arm' : left_c_pose,
                         [[0.38,  0.2, 0.15],   [0.0, 65, 0.0]],
                         [[0.38,  0.19, 0.15],  [0.0, 65, 0.0]]],}
 
-class GetSprayAlcoholPose(EventState):
+class GetSprayAlcoholPoseII(EventState):
 	"""
 	Publishes a pose from userdata so that it can be execute.
 
@@ -30,7 +31,7 @@ class GetSprayAlcoholPose(EventState):
 	
 	def __init__(self, robot_name):
 		"""Constructor"""
-		super(GetSprayAlcoholPose, self).__init__(outcomes=['done', 'finish'], output_keys=['robot_cmd'])
+		super(GetSprayAlcoholPoseII, self).__init__(outcomes=['done', 'finish'], output_keys=['robot_cmd'])
 		self.robot_name = robot_name
 		self.move_mode = 'p2p'
 		self.total_pose = len(c_pose[self.robot_name])
@@ -50,4 +51,4 @@ class GetSprayAlcoholPose(EventState):
 	
 	def on_enter(self, userdata):
 		self.pose_indx += 1
-			
+			               

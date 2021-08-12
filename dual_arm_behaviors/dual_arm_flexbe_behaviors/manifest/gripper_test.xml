@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<behavior name="scratch_desk">
+<behavior name="gripper_test">
 
-	<executable package_path="dual_arm_flexbe_behaviors.scratch_desk_sm" class="scratch_deskSM" />
+	<executable package_path="dual_arm_flexbe_behaviors.gripper_test_sm" class="gripper_testSM" />
 	<tagstring>1.0</tagstring>
 	<author>Luis</author>
-	<date>Tue Aug 12 2021</date>
+	<date>Thu Aug 12 2021</date>
 	<description>
-		Sample behavior of dual arm wipe desk
+		test robotiq_2f_gripper
 	</description>
 
 
@@ -16,7 +16,7 @@
 	<!-- Available Parameters -->
 	<params>
 
-		<param type="text" name="robot_name" default="right_arm" label="robot_name" hint="Sets the robot_name" />
+		<param type="text" name="robot_name" default="left_arm" label="robot_name" hint="Sets the robot_name" />
 
 		<param type="boolean" name="en_sim" default="False" label="en_sim" hint="Sets the en_sim" />
 

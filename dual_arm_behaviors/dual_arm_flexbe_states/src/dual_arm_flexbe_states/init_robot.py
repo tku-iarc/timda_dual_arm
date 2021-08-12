@@ -50,7 +50,7 @@ class InitRobotState(EventState):
 
 		self.robot_name = robot_name
 		self.en_sim = en_sim
-		self.speed = 100 #speed
+		self.speed = 20 #speed
 		self.slide_pos = 0 #slide_pos
 		self.joints = [0, -20, 0, 40, 0, -20, 0] #joints
 		self.status = Status.idle
