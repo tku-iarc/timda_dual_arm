@@ -3,8 +3,12 @@
 from flexbe_core import EventState, Logger
 from arm_control import Command
 
-right_c_pose = [[[-0.16, -0.2863, -0.65000],  [-44.024, 0.005, 4.498], 0],
-                [[-0.16, -0.1820, -0.76000],  [-44.024, 0.005, 4.498], 0]]
+right_c_pose = [[[-0.16, -0.1820, -0.47500],  [-44.024, 0.005, 4.498], 0],
+                [[ 0.60, -0.1820, -0.35500],  [46.024, 20.005, 4.998], 0],
+                [[ 0.20, -0.1820, -0.47500],  [46.024, 20.005, 4.998], 0],
+                [[ 0.50,  0.1063, -0.35500],  [46.024, 20.005, 4.998], 0],
+                [[ 0.20,  0.1063, -0.47500],  [46.024, 20.005, 4.998], 0],
+                [[ 0.20, -0.2463, -0.35500],  [46.024, 20.005, 4.998], 0]]
 
 c_pose = {'left_arm' :[[[0.38,  0.21, 0.15],  [0.0, 65, 0.0]],
                     [[0.38,  0.2, 0.15],  [0.0, 65, 0.0]],
@@ -14,7 +18,7 @@ c_pose = {'left_arm' :[[[0.38,  0.21, 0.15],  [0.0, 65, 0.0]],
                     [[0.38,  0.19, 0.15],    [0.0, 65, 0.0]]],
           'right_arm': right_c_pose}
 
-class ApporachScratcher(EventState):
+class GetScratchPose(EventState):
 	"""
 	Publishes a pose from userdata so that it can be execute.
 
@@ -29,9 +33,9 @@ class ApporachScratcher(EventState):
 	
 	def __init__(self, robot_name):
 		"""Constructor"""
-		super(ApporachScratcher, self).__init__(outcomes=['done', 'finish'], output_keys=['robot_cmd'])
+		super(GetScratchPose, self).__init__(outcomes=['done', 'finish'], output_keys=['robot_cmd'])
 		self.robot_name = robot_name
-		self.move_mode = 'p2p'
+		self.move_mode = 'line'
 		self.total_pose = len(c_pose[self.robot_name])
 		self.pose_indx = 0
 
@@ -40,7 +44,7 @@ class ApporachScratcher(EventState):
 			return 'finish'
 		else:
 			userdata.robot_cmd = Command()
-			userdata.robot_cmd['mode'] = 'p2p'
+			userdata.robot_cmd['mode'] = 'line'
 			userdata.robot_cmd['speed'] = 100
 			userdata.robot_cmd['pos'] = c_pose[self.robot_name][self.pose_indx][0]
 			userdata.robot_cmd['euler'] = c_pose[self.robot_name][self.pose_indx][1]

@@ -9,9 +9,9 @@
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from dual_arm_flexbe_states.IK_move import IKMoveState
-from dual_arm_flexbe_states.apporach_scratcher import ApporachScratcher
+from dual_arm_flexbe_states.fixed_pose_move import FixedPoseMoveState
+from dual_arm_flexbe_states.get_scratch_pose import GetScratchPose
 from dual_arm_flexbe_states.init_robot import InitRobotState
-from dual_arm_flexbe_states.robotiq_2f_gripper_control import Robotiq2FGripperControl
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
 
@@ -48,7 +48,7 @@ class scratch_deskSM(Behavior):
 
 
 	def create(self):
-		# x:859 y:341, x:678 y:10
+		# x:1250 y:407, x:734 y:2
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 
 		# Additional creation code can be added inside the following tags
@@ -64,27 +64,45 @@ class scratch_deskSM(Behavior):
 										transitions={'done': 'apporach_scratcher', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:489 y:175
-			OperatableStateMachine.add('Grab_scratcher',
-										Robotiq2FGripperControl(robot_name=self.robor_name, en_sim=self.en_sim, gripper_cmd=58),
-										transitions={'done': 'Back_Home'},
-										autonomy={'done': Autonomy.Off})
+			# x:517 y:292
+			OperatableStateMachine.add('apporach_return_spot',
+										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=100, pos=[-0.16, -0.1820, -0.6500], euler=[-42.024, 0.005, 4.498], phi=0),
+										transitions={'done': 'return_scratcher', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:486 y:83
-			OperatableStateMachine.add('Move_Robot',
-										IKMoveState(robot_name=self.robot_name, en_sim=self.en_sim),
-										transitions={'done': 'apporach_scratcher', 'failed': 'failed'},
-										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
-										remapping={'robot_cmd': 'robot_cmd'})
-
-			# x:280 y:172
+			# x:269 y:170
 			OperatableStateMachine.add('apporach_scratcher',
-										ApporachScratcher(robot_name=self.robot_name),
-										transitions={'done': 'Move_Robot', 'finish': 'Grab_scratcher'},
+										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=100, pos=[-0.16, -0.2863, -0.65000], euler=[-44.024, 0.005, 4.498], phi=0),
+										transitions={'done': 'arrive_scratcher', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:270 y:260
+			OperatableStateMachine.add('arrive_scratcher',
+										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=100, pos=[-0.16, -0.1820, -0.76000], euler=[-44.024, 0.005, 4.498], phi=0),
+										transitions={'done': 'get_scratch_pose', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:268 y:355
+			OperatableStateMachine.add('get_scratch_pose',
+										GetScratchPose(robot_name=self.robot_name),
+										transitions={'done': 'scratch_desk', 'finish': 'apporach_return_spot'},
 										autonomy={'done': Autonomy.Off, 'finish': Autonomy.Off},
 										remapping={'robot_cmd': 'robot_cmd'})
 
-			# x:695 y:172
+			# x:813 y:264
+			OperatableStateMachine.add('return_scratcher',
+										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=100, pos=[-0.16, -0.1820, -0.7600], euler=[-42.024, 0.005, 4.498], phi=0),
+										transitions={'done': 'Back_Home', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:517 y:230
+			OperatableStateMachine.add('scratch_desk',
+										IKMoveState(robot_name=self.robot_name, en_sim=self.en_sim),
+										transitions={'done': 'get_scratch_pose', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
+										remapping={'robot_cmd': 'robot_cmd'})
+
+			# x:978 y:71
 			OperatableStateMachine.add('Back_Home',
 										InitRobotState(robot_name=self.robot_name, en_sim=self.en_sim),
 										transitions={'done': 'finished', 'failed': 'failed'},
