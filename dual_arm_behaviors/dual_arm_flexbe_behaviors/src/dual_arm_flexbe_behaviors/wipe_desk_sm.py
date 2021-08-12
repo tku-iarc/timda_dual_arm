@@ -11,7 +11,7 @@ from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyC
 from dual_arm_flexbe_states.IK_move import IKMoveState
 from dual_arm_flexbe_states.fixed_joint_move import FixedJointMoveState
 from dual_arm_flexbe_states.fixed_pose_move import FixedPoseMoveState
-from dual_arm_flexbe_states.get_pose import GetPoseState
+from dual_arm_flexbe_states.get_spray_alcohol_pose import GetSprayAlcoholPose
 from dual_arm_flexbe_states.init_robot import InitRobotState
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
@@ -49,7 +49,7 @@ class wipe_deskSM(Behavior):
 
 
 	def create(self):
-		# x:499 y:236, x:567 y:701
+		# x:627 y:513, x:567 y:701
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 
 		# Additional creation code can be added inside the following tags
@@ -59,42 +59,54 @@ class wipe_deskSM(Behavior):
 
 
 		with _state_machine:
-			# x:32 y:153
-			OperatableStateMachine.add('init_robot',
-										InitRobotState(robot_name=self.robot_name, en_sim=self.en_sim),
-										transitions={'done': 'fixed_joints_test', 'failed': 'failed'},
+			# x:49 y:66
+			OperatableStateMachine.add('init_left_arm',
+										InitRobotState(robot_name='left_arm', en_sim=self.en_sim),
+										transitions={'done': 'init_right_arm', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:98 y:41
-			OperatableStateMachine.add('fixed_joints_test',
-										FixedJointMoveState(robot_name=self.robot_name, en_sim=self.en_sim, speed=100, slide_pos=0, joints=[0, -30, 0, 60, 0, -30, 0]),
-										transitions={'done': 'fixed_pose_test', 'failed': 'failed'},
+			# x:44 y:523
+			OperatableStateMachine.add('arrive_bottle',
+										FixedPoseMoveState(robot_name='left_arm', en_sim=self.en_sim, mode='line', speed=100, pos=[-0.1236, 0.1282, -0.6000], euler=[-44.024, -0.005, -44.998], phi=0),
+										transitions={'done': 'get_spray_pose', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:295 y:27
-			OperatableStateMachine.add('fixed_pose_test',
-										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='p2p', speed=100, pos=[0.2, -0.25, -0.5], euler=[0, 0, 0], phi=0),
-										transitions={'done': 'get_pose', 'failed': 'failed'},
+			# x:481 y:408
+			OperatableStateMachine.add('back_home',
+										FixedJointMoveState(robot_name='left_arm', en_sim=self.en_sim, speed=100, slide_pos=0, joints=[0,0,0,0,0,0,0]),
+										transitions={'done': 'finished', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:499 y:34
-			OperatableStateMachine.add('get_pose',
-										GetPoseState(robot_name=self.robot_name),
+			# x:331 y:50
+			OperatableStateMachine.add('get_spray_pose',
+										GetSprayAlcoholPose(robot_name='left_arm'),
 										transitions={'done': 'move_robot', 'finish': 'back_home'},
 										autonomy={'done': Autonomy.Off, 'finish': Autonomy.Off},
 										remapping={'robot_cmd': 'robot_cmd'})
 
-			# x:959 y:36
+			# x:44 y:425
+			OperatableStateMachine.add('go_above_bottle',
+										FixedPoseMoveState(robot_name='left_arm', en_sim=self.en_sim, mode='p2p', speed=100, pos=[-0.1236, 0.1282, -0.6680], euler=[-44.024, -0.005, -44.998], phi=0),
+										transitions={'done': 'arrive_bottle', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:44 y:263
+			OperatableStateMachine.add('init_right_arm',
+										InitRobotState(robot_name='right_arm', en_sim=self.en_sim),
+										transitions={'done': 'approach_alcohol_bottle', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:671 y:46
 			OperatableStateMachine.add('move_robot',
-										IKMoveState(robot_name=self.robot_name, en_sim=self.en_sim),
-										transitions={'done': 'get_pose', 'failed': 'failed'},
+										IKMoveState(robot_name='left_arm', en_sim=self.en_sim),
+										transitions={'done': 'get_spray_pose', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robot_cmd': 'robot_cmd'})
 
-			# x:494 y:156
-			OperatableStateMachine.add('back_home',
-										FixedJointMoveState(robot_name=self.robot_name, en_sim=self.en_sim, speed=100, slide_pos=0, joints=[0,0,0,0,0,0,0]),
-										transitions={'done': 'finished', 'failed': 'failed'},
+			# x:43 y:346
+			OperatableStateMachine.add('approach_alcohol_bottle',
+										FixedPoseMoveState(robot_name='left_arm', en_sim=self.en_sim, mode='p2p', speed=100, pos=[-0.1250, 0.2363, -0.600], euler=[-44.024, -0.005, -44.998], phi=0),
+										transitions={'done': 'go_above_bottle', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 

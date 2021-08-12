@@ -61,17 +61,17 @@ class scratch_deskSM(Behavior):
 			# x:89 y:114
 			OperatableStateMachine.add('initRobot',
 										InitRobotState(robot_name=self.robot_name, en_sim=self.en_sim),
-										transitions={'done': 'apporach_scratcher', 'failed': 'failed'},
+										transitions={'done': 'approach_scratcher', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:517 y:292
-			OperatableStateMachine.add('apporach_return_spot',
+			OperatableStateMachine.add('approach_return_spot',
 										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=100, pos=[-0.16, -0.1820, -0.6500], euler=[-42.024, 0.005, 4.498], phi=0),
 										transitions={'done': 'return_scratcher', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:269 y:170
-			OperatableStateMachine.add('apporach_scratcher',
+			OperatableStateMachine.add('approach_scratcher',
 										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=100, pos=[-0.16, -0.2863, -0.65000], euler=[-44.024, 0.005, 4.498], phi=0),
 										transitions={'done': 'arrive_scratcher', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
@@ -85,7 +85,7 @@ class scratch_deskSM(Behavior):
 			# x:268 y:355
 			OperatableStateMachine.add('get_scratch_pose',
 										GetScratchPose(robot_name=self.robot_name),
-										transitions={'done': 'scratch_desk', 'finish': 'apporach_return_spot'},
+										transitions={'done': 'scratch_desk', 'finish': 'approach_return_spot'},
 										autonomy={'done': Autonomy.Off, 'finish': Autonomy.Off},
 										remapping={'robot_cmd': 'robot_cmd'})
 
