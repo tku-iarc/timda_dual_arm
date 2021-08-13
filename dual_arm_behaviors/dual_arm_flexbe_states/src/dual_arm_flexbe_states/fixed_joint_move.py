@@ -56,7 +56,7 @@ class FixedJointMoveState(EventState):
 		self.en_sim = en_sim
 		self.speed = speed
 		self.slide_pos = slide_pos
-		self.joints = joints
+		self.joints = list(eval(joints)) if type(joints) is str else joints
 		print('----------')
 		print(self.joints)
 		self.status = Status.idle

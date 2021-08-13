@@ -20,6 +20,8 @@
 
 		<param type="boolean" name="en_sim" default="True" label="en_sim" hint="Sets the en_sim" />
 
+		<param type="text" name="pose_1" default="0.2, -0.25, -0.5" label="pose_1" hint="Sets the pose_1" />
+
 	</params>
 
 

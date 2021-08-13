@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<behavior name="Dual Arm Sample">
+
+	<executable package_path="dual_arm_flexbe_behaviors.dual_arm_sample_sm" class="DualArmSampleSM" />
+	<tagstring>1.0</tagstring>
+	<author>Andy Chien</author>
+	<date>Fri Aug 13 2021</date>
+	<description>
+		Sample behavior for dual-arm robot. It can move two arms at the same time.
+	</description>
+
+
+	<!-- Contained Behaviors -->
+	<contains name="Single Arm Sample" />
+
+	<!-- Available Parameters -->
+
+</behavior>
