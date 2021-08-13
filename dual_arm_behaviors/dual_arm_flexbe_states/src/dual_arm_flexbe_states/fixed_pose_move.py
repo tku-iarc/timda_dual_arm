@@ -56,8 +56,8 @@ class FixedPoseMoveState(EventState):
 		self.robot_name = robot_name
 		self.en_sim = en_sim
 		self.mode = mode
-		self.pos = pos
-		self.euler = euler
+		self.pos = list(eval(pos)) if type(pos) is str else pos
+		self.euler = list(eval(euler)) if type(euler) is str else euler
 		self.speed = speed
 		self.phi = phi
 		self.status = Status.idle

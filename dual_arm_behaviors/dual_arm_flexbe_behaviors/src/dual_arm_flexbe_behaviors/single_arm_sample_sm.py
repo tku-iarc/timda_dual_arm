@@ -36,6 +36,7 @@ class SingleArmSampleSM(Behavior):
 		# parameters of this behavior
 		self.add_parameter('robot_name', 'right_arm')
 		self.add_parameter('en_sim', True)
+		self.add_parameter('pose_1', '0.2, -0.25, -0.5')
 
 		# references to used behaviors
 
@@ -73,7 +74,7 @@ class SingleArmSampleSM(Behavior):
 
 			# x:295 y:27
 			OperatableStateMachine.add('fixed_pose_test',
-										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='p2p', speed=100, pos=[0.2, -0.25, -0.5], euler=[0, 0, 0], phi=0),
+										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='p2p', speed=100, pos=self.pose_1, euler=[0, 0, 0], phi=0),
 										transitions={'done': 'get_pose', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
