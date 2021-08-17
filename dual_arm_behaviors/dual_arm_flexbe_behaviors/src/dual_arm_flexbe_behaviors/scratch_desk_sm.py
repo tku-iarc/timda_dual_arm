@@ -66,6 +66,12 @@ class scratch_deskSM(Behavior):
 										transitions={'done': 'gripper_reset', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
+			# x:266 y:408
+			OperatableStateMachine.add('above_scratcher',
+										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=50, pos=[-0.16, -0.1920, -0.50500], euler=[-44.024, 0.005, 4.498], phi=0),
+										transitions={'done': 'get_scratch_pose', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
 			# x:517 y:292
 			OperatableStateMachine.add('approach_return_spot',
 										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=20, pos=[-0.16, -0.1820, -0.6500], euler=[-42.024, 0.005, 4.498], phi=0),
@@ -74,17 +80,17 @@ class scratch_deskSM(Behavior):
 
 			# x:269 y:170
 			OperatableStateMachine.add('approach_scratcher',
-										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=20, pos=[-0.16, -0.2863, -0.65000], euler=[-44.024, 0.005, 4.498], phi=0),
+										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=50, pos=[-0.16, -0.2863, -0.65000], euler=[-44.024, 0.005, 4.498], phi=0),
 										transitions={'done': 'arrive_scratcher', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:270 y:260
 			OperatableStateMachine.add('arrive_scratcher',
-										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=20, pos=[-0.16, -0.1820, -0.76000], euler=[-44.024, 0.005, 4.498], phi=0),
+										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=20, pos=[-0.16, -0.1920, -0.76000], euler=[-44.024, 0.005, 4.498], phi=0),
 										transitions={'done': 'grab_scratcher', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:269 y:421
+			# x:275 y:536
 			OperatableStateMachine.add('get_scratch_pose',
 										GetScratchPose(robot_name=self.robot_name),
 										transitions={'done': 'scratch_desk', 'finish': 'approach_return_spot'},
@@ -93,8 +99,8 @@ class scratch_deskSM(Behavior):
 
 			# x:269 y:334
 			OperatableStateMachine.add('grab_scratcher',
-										Robotiq2FGripperState(robot_name=self.robot_name, en_sim=self.en_sim, gripper_cmd=58),
-										transitions={'done': 'get_scratch_pose'},
+										Robotiq2FGripperState(robot_name=self.robot_name, en_sim=self.en_sim, gripper_cmd=200),
+										transitions={'done': 'above_scratcher'},
 										autonomy={'done': Autonomy.Off})
 
 			# x:84 y:283
@@ -103,10 +109,10 @@ class scratch_deskSM(Behavior):
 										transitions={'done': 'approach_scratcher'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:996 y:263
+			# x:992 y:351
 			OperatableStateMachine.add('gripper_release',
 										Robotiq2FGripperState(robot_name=self.robot_name, en_sim=self.en_sim, gripper_cmd='open'),
-										transitions={'done': 'Back_home'},
+										transitions={'done': 'safety_back'},
 										autonomy={'done': Autonomy.Off})
 
 			# x:85 y:202
@@ -117,8 +123,14 @@ class scratch_deskSM(Behavior):
 
 			# x:813 y:264
 			OperatableStateMachine.add('return_scratcher',
-										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=20, pos=[-0.16, -0.1820, -0.7600], euler=[-42.024, 0.005, 4.498], phi=0),
+										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=50, pos=[-0.16, -0.1920, -0.7600], euler=[-42.024, 0.005, 4.498], phi=0),
 										transitions={'done': 'gripper_release', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
+			# x:999 y:195
+			OperatableStateMachine.add('safety_back',
+										FixedPoseMoveState(robot_name=self.robot_name, en_sim=self.en_sim, mode='line', speed=20, pos=[-0.04, -0.1920, -0.7600], euler=[-42.024, 0.005, 4.498], phi=0),
+										transitions={'done': 'Back_home', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:517 y:230

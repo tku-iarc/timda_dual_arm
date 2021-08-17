@@ -38,7 +38,7 @@ class wipe_deskSM(Behavior):
 
 		# parameters of this behavior
 		self.add_parameter('robot_name', 'right_arm')
-		self.add_parameter('en_sim', True)
+		self.add_parameter('en_sim', False)
 
 		# references to used behaviors
 
@@ -68,6 +68,12 @@ class wipe_deskSM(Behavior):
 										transitions={'done': 'right_gripper_reset'},
 										autonomy={'done': Autonomy.Off})
 
+			# x:530 y:253
+			OperatableStateMachine.add('above_rag',
+										FixedPoseMoveState(robot_name='right_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.21, -0.077, -0.500], euler=[45.000, 0.000, 0.000], phi=0),
+										transitions={'done': 'get_spray_pose', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
 			# x:215 y:91
 			OperatableStateMachine.add('approach_alcohol_bottle',
 										FixedPoseMoveState(robot_name='left_arm', en_sim=self.en_sim, mode='p2p', speed=20, pos=[-0.1146, 0.2363, -0.600], euler=[-47.024, 3.005, -44.998], phi=0),
@@ -76,31 +82,31 @@ class wipe_deskSM(Behavior):
 
 			# x:605 y:9
 			OperatableStateMachine.add('approach_rag',
-										FixedPoseMoveState(robot_name='right_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.16, -0.300, -0.550], euler=[45.000, 0.000, 0.000], phi=0),
+										FixedPoseMoveState(robot_name='right_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.21, -0.280, -0.550], euler=[45.000, 0.000, 0.000], phi=0),
 										transitions={'done': 'arrive_rag', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:222 y:178
 			OperatableStateMachine.add('arrive_bottle',
-										FixedPoseMoveState(robot_name='left_arm', en_sim=self.en_sim, mode='p2p', speed=20, pos=[-0.1146, 0.1282, -0.6680], euler=[-47.024, 3.005, -44.998], phi=0),
+										FixedPoseMoveState(robot_name='left_arm', en_sim=self.en_sim, mode='p2p', speed=20, pos=[-0.1146, 0.1192, -0.6770], euler=[-47.024, 3.005, -44.998], phi=0),
 										transitions={'done': 'grab_bottle', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:550 y:97
 			OperatableStateMachine.add('arrive_rag',
-										FixedPoseMoveState(robot_name='right_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.16, -0.097, -0.800], euler=[45.000, 0.000, 0.000], phi=0),
+										FixedPoseMoveState(robot_name='right_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.21, -0.077, -0.810], euler=[45.000, 0.000, 0.000], phi=0),
 										transitions={'done': 'grap_rag', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:1139 y:153
 			OperatableStateMachine.add('arrive_return_bottle',
-										FixedPoseMoveState(robot_name='left_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.1146, 0.1582, -0.6710], euler=[-44.024, -0.005, -44.998], phi=0),
+										FixedPoseMoveState(robot_name='left_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.1146, 0.1462, -0.6710], euler=[-44.024, -0.005, -44.998], phi=0),
 										transitions={'done': 'release_bottle', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:963 y:399
 			OperatableStateMachine.add('arrive_return_rag',
-										FixedPoseMoveState(robot_name='right_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.16, -0.097, -0.800], euler=[45.000, 0.000, 0.000], phi=0),
+										FixedPoseMoveState(robot_name='right_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.21, -0.077, -0.800], euler=[45.000, 0.000, 0.000], phi=0),
 										transitions={'done': 'release_rag', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
@@ -114,7 +120,7 @@ class wipe_deskSM(Behavior):
 			# x:1124 y:6
 			OperatableStateMachine.add('get_spray_pose_II',
 										GetSprayAlcoholPoseII(robot_name='left_arm'),
-										transitions={'done': 'move_left_arm_II', 'finish': 'get_wipe_pose'},
+										transitions={'done': 'move_left_arm_II', 'finish': 'rag_out'},
 										autonomy={'done': Autonomy.Off, 'finish': Autonomy.Off},
 										remapping={'robot_cmd': 'robot_cmd'})
 
@@ -127,14 +133,14 @@ class wipe_deskSM(Behavior):
 
 			# x:227 y:281
 			OperatableStateMachine.add('grab_bottle',
-										Robotiq2FGripperState(robot_name='left_arm', en_sim=self.en_sim, gripper_cmd=57),
+										Robotiq2FGripperState(robot_name='left_arm', en_sim=self.en_sim, gripper_cmd=59),
 										transitions={'done': 'above_bottle'},
 										autonomy={'done': Autonomy.Off})
 
 			# x:529 y:191
 			OperatableStateMachine.add('grap_rag',
 										Robotiq2FGripperState(robot_name='right_arm', en_sim=self.en_sim, gripper_cmd=180),
-										transitions={'done': 'get_spray_pose'},
+										transitions={'done': 'above_rag'},
 										autonomy={'done': Autonomy.Off})
 
 			# x:48 y:193
@@ -188,6 +194,12 @@ class wipe_deskSM(Behavior):
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robot_cmd': 'robot_cmd'})
 
+			# x:950 y:174
+			OperatableStateMachine.add('rag_out',
+										FixedPoseMoveState(robot_name='right_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.18, -0.26, -0.4200], euler=[45.000, 0.000, 0.000], phi=0),
+										transitions={'done': 'get_wipe_pose', 'failed': 'failed'},
+										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
+
 			# x:1138 y:226
 			OperatableStateMachine.add('release_bottle',
 										Robotiq2FGripperState(robot_name='left_arm', en_sim=self.en_sim, gripper_cmd='open'),
@@ -202,13 +214,13 @@ class wipe_deskSM(Behavior):
 
 			# x:1135 y:75
 			OperatableStateMachine.add('return_bottle',
-										FixedPoseMoveState(robot_name='left_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.1146, 0.1582, -0.5500], euler=[-44.024, -0.005, -44.998], phi=0),
+										FixedPoseMoveState(robot_name='left_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.1146, 0.1462, -0.5500], euler=[-44.024, -0.005, -44.998], phi=0),
 										transitions={'done': 'arrive_return_bottle', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
 			# x:967 y:278
 			OperatableStateMachine.add('return_rag',
-										FixedPoseMoveState(robot_name='right_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.13, -0.097, -0.600], euler=[45.000, 0.000, 0.000], phi=0),
+										FixedPoseMoveState(robot_name='right_arm', en_sim=self.en_sim, mode='line', speed=20, pos=[-0.21, -0.077, -0.600], euler=[45.000, 0.000, 0.000], phi=0),
 										transitions={'done': 'arrive_return_rag', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
@@ -238,7 +250,7 @@ class wipe_deskSM(Behavior):
 
 			# x:925 y:13
 			OperatableStateMachine.add('squeeze_alcohol',
-										Robotiq2FGripperState(robot_name='left_arm', en_sim=self.en_sim, gripper_cmd=100),
+										Robotiq2FGripperState(robot_name='left_arm', en_sim=self.en_sim, gripper_cmd=105),
 										transitions={'done': 'get_spray_pose_II'},
 										autonomy={'done': Autonomy.Off})
 

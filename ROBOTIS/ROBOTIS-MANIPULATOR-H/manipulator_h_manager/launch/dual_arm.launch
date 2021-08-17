@@ -3,8 +3,8 @@
 <launch>
     <arg name="en_sim" default="false"/>
 
-    <arg name="left_comport"   default="/dev/ttyUSB2" />
-    <arg name="right_comport"   default="/dev/ttyUSB3" />
+    <arg name="left_comport"   default="/dev/ttyUSB1" />
+    <arg name="right_comport"   default="/dev/ttyUSB0" />
 
     <arg name="gripper_comport"   default="/dev/ttyUSB0" />
     <arg name="arduino_port" default="/dev/wrs/arduino"/>
@@ -28,11 +28,11 @@
             <!-- <param name="comport" value="$(arg gripper_comport)"/> -->
         </node>
     </group>
-    <!-- <group ns="right_arm">
+    <group ns="right_arm">
         <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
             <param name="comport" value="$(arg right_comport)"/>
         </node>
-    </group> -->
+</group>
 
     <include file="$(find mobile_dual_arm)/launch/mobile_dual_arm.launch" if="$(arg en_sim)">
         <arg name="paused" default="true"/>
