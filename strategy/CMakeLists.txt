@@ -65,6 +65,7 @@ add_message_files(
    AssistantState.srv
    plot_position.srv
    kmeans_output.srv
+   timda_mobile_state.srv
  )
 
 ## Generate actions in the 'action' folder
