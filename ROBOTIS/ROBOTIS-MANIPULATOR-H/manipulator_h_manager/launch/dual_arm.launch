@@ -21,13 +21,13 @@
         <arg name="arm_type"   value="arm_type"/>
     </include>
 
-    <group ns="left_arm">
+    <!-- <group ns="left_arm">
         <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
 
             <param name="comport" value="$(arg left_comport)"/>
-            <!-- <param name="comport" value="$(arg gripper_comport)"/> -->
+            <param name="comport" value="$(arg gripper_comport)"/> 
         </node>
-    </group>
+    </group> -->
     <!-- <group ns="right_arm">
         <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
             <param name="comport" value="$(arg right_comport)"/>
