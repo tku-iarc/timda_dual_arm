@@ -20,58 +20,50 @@ from hand_eye.srv import aruco_info, aruco_infoResponse
 import time
 import pyrealsense2 as rs
 NUMBER = 5
-# # Constant parameters used in Aruco methods
-# ARUCO_PARAMETERS = aruco.DetectorParameters_create()
-# ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_4X4_100)
-
-# Constant parameters used in Aruco methods
-ARUCO_PARAMETERS = aruco.DetectorParameters_create()
-ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_4X4_50)
-CHARUCOBOARD_ROWCOUNT=7
-CHARUCOBOARD_COLCOUNT=5
-
-# Create grid board object we're using in our stream
-CHARUCO_BOARD = aruco.CharucoBoard_create(
-        squaresX=CHARUCOBOARD_COLCOUNT,
-        squaresY=CHARUCOBOARD_ROWCOUNT,
-        squareLength=0.0359,
-        markerLength=0.0244,
-        dictionary=ARUCO_DICT)
-
-
-
 class CharucoBoardPosture():
-    def __init__(self, name, size):
-        self.name = name
-        self.markersize = size
+    def __init__(self):
+        camera_id = str(rospy.get_param('~camera_id'))
+        color_width = rospy.get_param('~color_width')
+        color_high = rospy.get_param('~color_high')
+        charuco_row = rospy.get_param('~charuco_row')
+        charuco_col = rospy.get_param('~charuco_col')
+        square_length = rospy.get_param('~square_length')
+        marker_length = rospy.get_param('~marker_length')
         self.cnd = 0
         self.frameId = 0
         self.pipeline = rs.pipeline()
         rs_config = rs.config()
-        rs_config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-        rs_config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
-
+        rs_config.enable_stream(rs.stream.color, color_width, color_high, rs.format.bgr8, 30)
         self.pipeline.start(rs_config)
+
+        # Constant parameters used in Aruco methods
+        self.aruco_param = aruco.DetectorParameters_create()
+        self.aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
+        # Create grid board object we're using in our stream
+        self.charuco_board = aruco.CharucoBoard_create(
+                squaresX=charuco_col,
+                squaresY=charuco_row,
+                squareLength=square_length,
+                markerLength=marker_length,
+                dictionary=self.aruco_dict)
+
         # Check for camera calibration data
 
         config = ConfigParser.ConfigParser()
         config.optionxform = str
         rospack = rospkg.RosPack()
         self.curr_path = rospack.get_path('hand_eye')
-        config.read(self.curr_path + '/config/right_arm_img_trans.ini')
-        # curr_path = os.path.dirname(os.path.abspath(__file__))
-        # config = ConfigParser.ConfigParser()
-        # path = curr_path + '\..\config\img_trans.ini'
-        # config.read(path)
-        b00 = float(config.get("Internal_1920_1080", "Key_1_1"))
-        b01 = float(config.get("Internal_1920_1080", "Key_1_2"))
-        b02 = float(config.get("Internal_1920_1080", "Key_1_3"))
-        b10 = float(config.get("Internal_1920_1080", "Key_2_1"))
-        b11 = float(config.get("Internal_1920_1080", "Key_2_2"))
-        b12 = float(config.get("Internal_1920_1080", "Key_2_3"))
-        b20 = float(config.get("Internal_1920_1080", "Key_3_1"))
-        b21 = float(config.get("Internal_1920_1080", "Key_3_2"))
-        b22 = float(config.get("Internal_1920_1080", "Key_3_3"))
+        config.read(self.curr_path + '/config/camera_' + str(camera_id) + '_internal.ini')
+        internal_name = 'Internal_' + str(color_width) + '_' + str(color_high)
+        b00 = float(config.get(internal_name, "Key_1_1"))
+        b01 = float(config.get(internal_name, "Key_1_2"))
+        b02 = float(config.get(internal_name, "Key_1_3"))
+        b10 = float(config.get(internal_name, "Key_2_1"))
+        b11 = float(config.get(internal_name, "Key_2_2"))
+        b12 = float(config.get(internal_name, "Key_2_3"))
+        b20 = float(config.get(internal_name, "Key_3_1"))
+        b21 = float(config.get(internal_name, "Key_3_2"))
+        b22 = float(config.get(internal_name, "Key_3_3"))
 
         self.cameraMatrix = np.mat([[b00, b01, b02],
                                     [b10, b11, b12],
@@ -121,25 +113,25 @@ class CharucoBoardPosture():
         for order in range (NUMBER):
             # Capturing each frame of our video stream
             # ret, self.QueryImg = self.cam.read()
-            # frames = self.pipeline.wait_for_frames()
-            # color_frame = frames.get_color_frame()
-            # self.QueryImg = np.asanyarray(color_frame.get_data())
+            frames = self.pipeline.wait_for_frames()
+            color_frame = frames.get_color_frame()
+            self.QueryImg = np.asanyarray(color_frame.get_data())
             # grayscale image
             gray = cv2.cvtColor(self.QueryImg, cv2.COLOR_BGR2GRAY)
 
             # Detect Aruco markers
-            corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, ARUCO_DICT, parameters=ARUCO_PARAMETERS)
+            corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, self.aruco_dict, parameters=self.aruco_param)
 
             # Refine detected markers
             # Eliminates markers not part of our board, adds missing markers to the board
             corners, ids, rejectedImgPoints, recoveredIds = aruco.refineDetectedMarkers(
                     image = gray,
-                    board = CHARUCO_BOARD,
+                    board = self.charuco_board,
                     detectedCorners = corners,
                     detectedIds = ids,
                     rejectedCorners = rejectedImgPoints,
                     cameraMatrix = self.cameraMatrix,
-                    distCoeffs = self.distCoeffs)   
+                    distCoeffs = self.distCoeffs)
 
             # Require 15 markers before drawing axis
             if ids is not None and len(ids) > 10:
@@ -147,7 +139,7 @@ class CharucoBoardPosture():
                         markerCorners=corners,
                         markerIds=ids,
                         image=gray,
-                        board=CHARUCO_BOARD)
+                        board=self.charuco_board)
 
                 # Require more than 20 squares
                 if response is not None and response > 20:
@@ -155,7 +147,7 @@ class CharucoBoardPosture():
                     pose, rvec, tvec = aruco.estimatePoseCharucoBoard(
                             charucoCorners=charuco_corners, 
                             charucoIds=charuco_ids, 
-                            board=CHARUCO_BOARD, 
+                            board=self.charuco_board, 
                             cameraMatrix=self.cameraMatrix, 
                             distCoeffs=self.distCoeffs)
                     if pose:
@@ -222,39 +214,33 @@ class CharucoBoardPosture():
         
         result = result.reshape(2,3)
 
-        if self.name == 'test':
-            # Outline all of the markers detected in our image
-            self.QueryImg = aruco.drawDetectedMarkers(self.QueryImg, corners, borderColor=(0, 0, 255))
-            self.QueryImg = aruco.drawAxis(self.QueryImg, self.cameraMatrix, self.distCoeffs, result[0], result[1], 0.02)
-            # self.curr_path = os.path.dirname(os.path.abspath(__file__))
-            filename = self.curr_path + "/pic/camera-pic-of-charucoboard-" +  str(int(self.frameId)) + ".jpg"
-            cv2.imwrite(filename, self.QueryImg)
-            self.frameId += 1
-
-            print('------')
+        filename = self.curr_path + "/pic/charucoboard-pic-" +  str(int(self.frameId)) + ".jpg"
+        cv2.imwrite(filename, self.QueryImg)
+        # Outline all of the markers detected in our image
+        self.QueryImg = aruco.drawDetectedMarkers(self.QueryImg, corners, borderColor=(0, 0, 255))
+        self.QueryImg = aruco.drawAxis(self.QueryImg, self.cameraMatrix, self.distCoeffs, result[0], result[1], 0.02)
+        # self.curr_path = os.path.dirname(os.path.abspath(__file__))
+        filename = self.curr_path + "/pic/detection result-" +  str(int(self.frameId)) + ".jpg"
+        cv2.imwrite(filename, self.QueryImg)
+        self.frameId += 1
+        print('------')
 
         return res
             
 if __name__ == '__main__':
     rospy.init_node('aruco_tracker')
-    is_show = True
-    name = 'test'
-    size = rospy.get_param('~marker_size')
-    if rospy.has_param('is_show'):
-        is_show = rospy.get_param('is_show')
-    if is_show == False:
-        name = 'fuck_run'
+    mp = CharucoBoardPosture()
+    while not rospy.is_shutdown():
+        frames = mp.pipeline.wait_for_frames()
+        color_frame = frames.get_color_frame()
+        mp.QueryImg = np.asanyarray(color_frame.get_data())
 
-    mp = CharucoBoardPosture(name, size)
-    if mp.name == 'test':
-        while mp.QueryImg is None:
-            time.sleep(0.1)
-        while not rospy.is_shutdown():
-            frames = mp.pipeline.wait_for_frames()
-            color_frame = frames.get_color_frame()
-            mp.QueryImg = np.asanyarray(color_frame.get_data())
-            cv2.imshow('Amanda', mp.QueryImg)
-            cv2.waitKey(10)
+        # Reproportion the image, maxing width or height at 1000
+        proportion = max(mp.QueryImg.shape) / 640
+        img = cv2.resize(mp.QueryImg, (int(mp.QueryImg.shape[1]/proportion), int(mp.QueryImg.shape[0]/proportion)))
+        # Pause to display each image, waiting for key press
+        cv2.imshow('camera image', img)
+        cv2.waitKey(10)
     rospy.spin()
     cv2.destroyAllWindows()
     del mp
