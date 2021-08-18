@@ -60,7 +60,7 @@ class scratch_deskSM(Behavior):
 
 
 		with _state_machine:
-			# x:89 y:114
+			# x:90 y:109
 			OperatableStateMachine.add('initRobot',
 										InitRobotState(robot_name=self.robot_name, en_sim=self.en_sim),
 										transitions={'done': 'gripper_reset', 'failed': 'failed'},
@@ -103,7 +103,7 @@ class scratch_deskSM(Behavior):
 										transitions={'done': 'above_scratcher'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:84 y:283
+			# x:85 y:341
 			OperatableStateMachine.add('gripper_active',
 										Robotiq2FGripperState(robot_name=self.robot_name, en_sim=self.en_sim, gripper_cmd='active'),
 										transitions={'done': 'approach_scratcher'},
@@ -115,7 +115,7 @@ class scratch_deskSM(Behavior):
 										transitions={'done': 'safety_back'},
 										autonomy={'done': Autonomy.Off})
 
-			# x:85 y:202
+			# x:87 y:218
 			OperatableStateMachine.add('gripper_reset',
 										Robotiq2FGripperState(robot_name=self.robot_name, en_sim=self.en_sim, gripper_cmd='reset'),
 										transitions={'done': 'gripper_active'},

@@ -1,45 +1,75 @@
-from flexbe_core.proxy import ProxyServiceCaller
-from strategy.srv import timda_mobile_state, timda_mobile_state_Response
+from flexbe_core.proxy import ProxySubscriberCached
+from strategy.msg import TimdaMobileStatus
 import rospy
+from enum import IntEnum
+from flexbe_core import EventState
 
-TIMDA_SERVER = "Timda_mobile"
+class Status(IntEnum):
+	idle             = 0
+	busy             = 1
+        failed_to_arrive = 2
+	finish           = 3
 
 
 class WaitTimdaMobile(EventState):
 	'''
 	Wait for timda_mobile to Goal.
 
-	-- robot_name               string          Robots name to move
 	-- en_sim					bool			Use real robot or Gazebo
 
 	<= done 									Robot move done.
 	<= failed 									Robot move failed.
 	'''
 	
-	def __init__(self, robot_name):
-		"""Constructor"""
+	def __init__(self, en_sim):
+		'''
+		Constructor
+		'''
 		super(WaitTimdaMobile, self).__init__(outcomes=['done', 'failed'])
-		self.robot_name = robot_name
-		self._timda_mobile_service = TIMDA_SERVER
-		self.timda_mobile_client = ProxyServiceCaller({self._timda_mobile_service: timda_mobile_state})
-		self.timda_mobile_Goal = None
-		self.timda_mobile_status = None
-	# def __set_server__(self):
-	# 	self._timda_mobile_service = 'timda_mobile_state'
-	# 	self.timda_mobile_server = ProxyServiceCaller({
-	# 	    self.mobile_service:
-	# 	    timda_mobile_state})
 
-	def execute(self):
+		#self.robot_name = robot_name
+		self.en_sim = en_sim
+		self.status = Status.idle
+		self.__set_pubSub()
+
+	def __set_pubSub(self):
+		self.timda_mobile_status_topic = '/timda_mobile_status'
+		self.__status_sub = ProxySubscriberCached({
+		    self.timda_mobile_status_topic:
+		    TimdaMobileStatus})
+
+	def __status_callback(self, msg):
+		if 'Move To Goal' in msg.status:
+			self.status = Status.busy
+			rospy.loginfo('Timda Mobile Move!')
+		elif 'Failed' in msg.status:
+			self.status = Status.failed_to_arrive
+			rospy.logwarn('Can Not Arrive Goal')
+		elif 'Arrive' in msg.status:
+			self.status = Status.finish
+			rospy.loginfo('Arrive Goal!')
+		else:
+			rospy.logwarn('Unknow Status')
+
+
+
+	
+	def execute(self, userdata):
 		'''
 		Execute this state
 		'''
+		if self.__status_sub.has_msg(self.timda_mobile_status_topic):
+			msg = self.__status_sub.get_last_msg(self.timda_mobile_status_topic)
+			self.__status_callback(msg)
 
-		if self.timda_mobile_status == Status.finish:
+		if self.status == Status.finish:
 			return 'done'
-		elif self.status == Status.ik_fail or self.status == Status.emergency_stop:
+		elif self.status == Status.failed_to_arrive:
 			return 'failed'
-	
+
 	def on_enter(self, userdata):
-		#self.__set_server__()
-		self.timda_mobile_status = self.timda_mobile_client.call(self._timda_mobile_service, action_goal)	
+		self.status = Status.busy
+		self.__status_sub.remove_last_msg(self.timda_mobile_status_topic)
+
+		
+
