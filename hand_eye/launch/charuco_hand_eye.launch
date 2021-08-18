@@ -1,5 +1,12 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="camera_id"  default="8"/>
+  <arg name="color_width" default="1920"/>
+  <arg name="color_high" default="1080"/>
+  <arg name="charuco_row" default="7"/>
+  <arg name="charuco_col" default="5"/>
+  <arg name="square_length" default="0.036"/>
+  <arg name="marker_length" default="0.0244"/>
   <!-- Set the eye mode (see README for more info) -->
   <arg name="camera_parent_frame"/>
   <arg name="marker_parent_frame"/>
@@ -52,7 +59,6 @@
       pkg="hand_eye"
       type="calibrate.py"
       output="screen">
-      <param name="marker_size"        value="$(arg markersize)"/>
       <param name="marker_id"          value="$(arg markerid)"/>
       <param name="reference_frame"    value="$(arg reference_frame)"/>
       <param name="camera_frame"       value="$(arg camera_frame)"/>
@@ -72,7 +78,13 @@
       pkg="hand_eye"
       type="CharucoPosture.py"
       output="screen">
-      <param name="marker_size"        value="$(arg markersize)"/>
+      <param name="color_width" value="$(arg color_width)"/>
+      <param name="color_high" value="$(arg color_high)"/>
+      <param name="camera_id" value="$(arg camera_id)"/>
+      <param name="charuco_row"   value="$(arg charuco_row)"/>
+      <param name="charuco_col"   value="$(arg charuco_col)"/>
+      <param name="square_length" value="$(arg square_length)"/>
+      <param name="marker_length" value="$(arg marker_length)"/>
     </node>
     
   </group>

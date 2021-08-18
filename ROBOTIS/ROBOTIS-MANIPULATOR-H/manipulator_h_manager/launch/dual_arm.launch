@@ -8,13 +8,21 @@
 
     <include file="$(find manipulator_h_manager)/launch/single_arm.launch">
         <arg name="side"   value="right"/>
+        <arg name="robot_name" value="right_arm" />
         <arg name="en_sim" value="$(arg en_sim)"/>
-        <arg name="arm_type"   value="arm_type"/>
+        <arg name="arm_type"   value="$(arg arm_type)"/>
+        <arg name="camera_id" default="3"/>
+        <arg name="color_width" default="1920" />
+        <arg name="color_high" default="1080"/>
     </include>
     <include file="$(find manipulator_h_manager)/launch/single_arm.launch">
         <arg name="side"   value="left"/>
+        <arg name="robot_name" value="left_arm" />
         <arg name="en_sim" value="$(arg en_sim)"/>
-        <arg name="arm_type"   value="arm_type"/>
+        <arg name="arm_type"   value="$(arg arm_type)"/>
+        <arg name="camera_id" default="8"/>
+        <arg name="color_width" default="1920" />
+        <arg name="color_high" default="1080"/>
     </include>
 
     <!--<group ns="left_arm">
@@ -41,7 +49,7 @@
     <node pkg="manipulator_h_joystick" type="manipulator_h_joystick_node" name="joy_control" output="screen">
         <param name="side" type="str" value="both"/>
     </node>
-    <node pkg="rosserial_python" type="serial_node.py" name="arduino_node">
+    <node pkg="rosserial_python" type="serial_node.py" name="arduino_node" unless="$(arg en_sim)">
         <param name="port"  value="$(arg arduino_port)"/>
     </node>
 </launch>

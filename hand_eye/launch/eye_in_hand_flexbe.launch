@@ -1,6 +1,14 @@
 <launch>
-  <arg name="en_sim" default="flase"/>
-  <arg name="side" default="left"/>
+  <!-- <arg name="en_sim" default="flase"/>
+  <arg name="side" default="left"/> -->
+  <arg name="camera_id"  default="3"/>
+  <arg name="color_width" default="1920"/>
+  <arg name="color_high" default="1080"/>
+  <arg name="charuco_row" default="7"/>
+  <arg name="charuco_col" default="5"/>
+  <arg name="square_length" default="0.036"/>
+  <arg name="marker_length" default="0.0244"/>
+
   <include file="$(find hand_eye)/launch/charuco_hand_eye.launch">
     <arg name="markerid"   value="30"/>
     <arg name="markersize" value="0.1268"/>
@@ -11,5 +19,12 @@
 
     <arg name="camera" value="/camera"/>
     <arg name="camera_frame" value="/camera_rgb_optical_frame"/>
+    <arg name="color_width" value="$(arg color_width)"/>
+    <arg name="color_high" value="$(arg color_high)"/>
+    <arg name="camera_id" value="$(arg camera_id)"/>
+    <arg name="charuco_row"   value="$(arg charuco_row)"/>
+    <arg name="charuco_col"   value="$(arg charuco_col)"/>
+    <arg name="square_length" value="$(arg square_length)"/>
+    <arg name="marker_length" value="$(arg marker_length)"/>
   </include>
 </launch>

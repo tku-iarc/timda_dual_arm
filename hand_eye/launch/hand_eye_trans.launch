@@ -1,0 +1,13 @@
+<launch>
+  <arg name="robot_name" default="right_arm" />
+  <arg name="camera_id" default="3"/>
+  <arg name="color_width" default="1920" />
+  <arg name="color_high" default="1080"/>
+
+  <node name="hand_eye_trans" pkg="hand_eye" type="hand_eye_trans.py" output="screen">
+    <param name="robot_name" value="$(arg robot_name)"/>
+    <param name="camera_id" value="$(arg camera_id)"/>
+    <param name="color_width" value="$(arg color_width)"/>
+    <param name="color_high" value="$(arg color_high)"/>
+  </node>
+</launch>

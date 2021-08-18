@@ -166,7 +166,7 @@ class CameraCalib:
                 # config.read(['img_trans_pinto.ini', curr_path])
                 rospack = rospkg.RosPack()
                 curr_path = rospack.get_path('hand_eye')
-                config.read(curr_path + '/config/' + side + '_img_trans.ini')
+                config.read(curr_path + '/config/' + side + '_arm_img_trans.ini')
                 
                 config.set("External", "Key_1_1", str(trans_mat[0][0]))
                 config.set("External", "Key_1_2", str(trans_mat[0][1]))
