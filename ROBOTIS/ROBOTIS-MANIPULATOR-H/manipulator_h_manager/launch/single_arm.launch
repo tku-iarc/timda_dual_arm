@@ -3,10 +3,15 @@
 <launch>
     <arg name="en_sim" default="false"  />
     <arg name="side"   default="left" />
+    <arg name="robot_name" default="left_arm" />
     <arg name="arm_type" default="single_arm"/>
+    <arg name="arduino_port" default="/dev/wrs/arduino"/>
+    <arg name="camera_id" default="3"/>
+    <arg name="color_width" default="1920" />
+    <arg name="color_high" default="1080"/>
     <!-- <arg name="comport"   default="/dev/ttyUSB0" /> -->
 
-    <group ns="$(arg side)_arm">
+    <group ns="$(arg robot_name)">
         <node name="manipulator_h_manager" pkg="manipulator_h_manager" type="manipulator_h_manager" output="screen">
             <param name="en_sim"                   value="$(arg en_sim)" />
             <param name="side"                     value="$(arg side)" />
@@ -18,20 +23,32 @@
         </node>
 
         <node pkg="manipulator_h_gui" type="manipulator_h_gui" name="$(arg side)_gui" output="screen">
-            <param name="robot_name"             value="$(arg side)_arm"/>
+            <param name="robot_name"             value="$(arg robot_name)"/>
         </node>
 
         <node pkg="linear_motion" type="linear_z" name="slide_$(arg side)" output="screen" unless="$(arg en_sim)">
             <param name="side"               value="$(arg side)" />
             <param name="en_sim"                   value="$(arg en_sim)" />
         </node>
-        <node pkg="joy" type="joy_node" name="dual_arm_joy" output="screen" if="$(eval arm_type == 'single_arm')">
-            <param name="joy_node/dev" value="/dev/input/js0"/>
-        </node>
-        <node pkg="manipulator_h_joystick" type="manipulator_h_joystick_node" name="joy_control" 
-              output="screen" if="$(eval arm_type == 'single_arm')">
-            <param name="side" value="both"/>
-        </node>
+        <group if="$(eval arm_type == 'single_arm')">
+            <node pkg="joy" type="joy_node" name="dual_arm_joy" output="screen">
+                <param name="joy_node/dev" value="/dev/input/js0"/>
+            </node>
+            <node pkg="manipulator_h_joystick" type="manipulator_h_joystick_node" name="joy_control" 
+                output="screen">
+                <param name="side" value="both"/>
+            </node>
+            <node pkg="rosserial_python" type="serial_node.py" name="arduino_node" unless="$(arg en_sim)">
+                <param name="port"  value="$(arg arduino_port)"/>
+            </node>
+        </group>
+
+        <include file="$(find hand_eye)/launch/hand_eye_trans.launch">
+            <arg name="robot_name" value="$(arg robot_name)"/>
+            <arg name="camera_id" value="$(arg camera_id)"/>
+            <arg name="color_width" value="$(arg color_width)"/>
+            <arg name="color_high" value="$(arg color_high)"/>
+        </include>
         <!-- <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="$(arg side)_Gripper" output="screen" >
             <param name="comport" value="$(arg comport)"/>
         </node> -->
