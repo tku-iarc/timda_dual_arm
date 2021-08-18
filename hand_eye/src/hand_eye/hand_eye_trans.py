@@ -5,7 +5,7 @@ import rospy
 import rospkg
 import tf
 import ConfigParser
-from math import radians, degrees, pi
+from math import asin, atan2, degrees, pi
 from hand_eye.srv import eye2base, eye2baseResponse
 from manipulator_h_base_module_msgs.srv import GetKinematicsPose
 
@@ -99,6 +99,13 @@ class HandEyeTrans:
     def __get_robot_trans(self):
         res = self.__get_feedback()
         self._base_tool_trans = np.mat(res.orientation).reshape(4, 4)
+
+    def __rotation2rpy(rotation):
+        _rpy = []
+        _rpy.append(degrees(asin(rotation[1, 2])))
+        _rpy.append(degrees(atan2(rotation[0, 2], -rotation[2, 2])))
+        _rpy.append(degrees(atan2(-rotation[1, 0], -rotation[1, 1])))
+        return _rpy
         
     def __eye2base_transform(self, req):
         self.__get_robot_trans()
@@ -107,7 +114,10 @@ class HandEyeTrans:
         # eye_obj_trans[:3] = np.multiply(eye_obj_trans[:3], 0.01)
         result = self._base_tool_trans * np.linalg.inv(self._rtool_tool_trans) * self._rtool_eye_trans * eye_obj_trans
         res = eye2baseResponse()
-        res.tar_pose = np.array(result).reshape(-1)
+        res.trans = np.mat(np.identity(4))
+        res.trans[2, :] = result 
+        res.pos = np.array(result[:3]).reshape(-1)
+        res.euler = self.__rotation2rpy(res.trans)
         return res
 
     def __eye_trans2base_transform(self, req):
@@ -116,7 +126,9 @@ class HandEyeTrans:
         eye_obj_trans = np.mat(req.ini_pose).reshape(4, 4)
         result = self._base_tool_trans * np.linalg.inv(self._rtool_tool_trans) * self._rtool_eye_trans * eye_obj_trans
         res = eye2baseResponse()
-        res.tar_pose = np.array(result).reshape(-1)
+        res.trans = np.array(result).reshape(-1)
+        res.pos = np.array(result[2, :3]).reshape(-1)
+        res.euler = self.__rotation2rpy(result)
         return res
         
 
@@ -129,7 +141,10 @@ class HandEyeTrans:
         eye_obj_trans[:2] = np.multiply(eye_obj_trans[:2], [[1/self._camera_mat[0, 0]], [1/self._camera_mat[1, 1]]])
         result = self._base_tool_trans * np.linalg.inv(self._rtool_tool_trans) * self._rtool_eye_trans * eye_obj_trans
         res = eye2baseResponse()
-        res.tar_pose = np.array(result).reshape(-1)
+        res.trans = np.mat(np.identity(4))
+        res.trans[2, :] = result
+        res.pos = np.array(result[:3]).reshape(-1)
+        res.euler = self.__rotation2rpy(res.trans)
         return res
 
 if __name__ == "__main__":

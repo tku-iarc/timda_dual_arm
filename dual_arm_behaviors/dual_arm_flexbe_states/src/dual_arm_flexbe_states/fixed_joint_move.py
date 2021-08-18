@@ -77,7 +77,7 @@ class FixedJointMoveState(EventState):
 	def __status_callback(self, msg):
 		if 'Start Trajectory' in msg.status_msg:
 			self.status = Status.busy
-			rospy.loginfo('Arm Move!')
+			# rospy.loginfo('Arm Move!')
 		elif 'IK Failed' in msg.status_msg:
 			self.status = Status.ik_fail
 			rospy.logwarn('IK Fail!')
