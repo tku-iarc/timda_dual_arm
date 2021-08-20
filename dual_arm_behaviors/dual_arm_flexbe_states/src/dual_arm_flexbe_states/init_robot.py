@@ -36,13 +36,14 @@ class InitRobotState(EventState):
 
 	-- robot_name               string          Robots name to move
 	-- en_sim					bool			Use real robot or Gazebo
+	-- speed                    int             default robot move speed
 
 	<= done 									Robot move done.
 	<= failed 									Robot move failed.
 	'''
 
 
-	def __init__(self, robot_name, en_sim):#, speed, slide_pos, joints):
+	def __init__(self, robot_name, en_sim, speed):#, speed, slide_pos, joints):
 		'''
 		Constructor
 		'''
@@ -50,7 +51,7 @@ class InitRobotState(EventState):
 
 		self.robot_name = robot_name
 		self.en_sim = en_sim
-		self.speed = 100 #speed
+		self.speed = speed
 		self.slide_pos = 0 #slide_pos
 		self.joints = [0, -20, 0, 40, 0, -20, 0] #joints
 		self.status = Status.idle

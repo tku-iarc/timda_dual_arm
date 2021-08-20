@@ -37,6 +37,7 @@ class IKMoveState(EventState):
 
 	-- robot_name               string          Robots name to move
 	-- en_sim					bool			Use real robot or Gazebo
+	-- speed                    int             default robot speed
 
 	># robot_cmd                command(dict)   See arm_task.py
 
@@ -45,7 +46,7 @@ class IKMoveState(EventState):
 	'''
 
 
-	def __init__(self, robot_name, en_sim):
+	def __init__(self, robot_name, en_sim, speed):
 		'''
 		Constructor
 		'''
@@ -55,6 +56,7 @@ class IKMoveState(EventState):
 		self.robot_name = robot_name
 		self.en_sim = en_sim
 		self.suction_angle = 0
+		self.speed = speed
 		self.status = Status.idle
 		self.__set_pubSub()
 
@@ -121,6 +123,8 @@ class IKMoveState(EventState):
 			msg.pose.orientation.w = quat[3]
 		if speed is not None:
 			msg.speed = speed
+		else:
+			msg.speed = self.speed
 
 		msg.phi = radians(phi)
 

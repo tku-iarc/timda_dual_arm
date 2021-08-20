@@ -54,7 +54,6 @@ class ComputeCalibrationState(EventState):
             rospack = rospkg.RosPack()
             hand_eye_path = rospack.get_path('hand_eye')
             config.read(hand_eye_path + '/config/' + self.robot_name + '_img_trans.ini')
-            
             config.set("External", "Key_1_1", str(trans_mat[0][0]))
             config.set("External", "Key_1_2", str(trans_mat[0][1]))
             config.set("External", "Key_1_3", str(trans_mat[0][2]))
@@ -67,6 +66,8 @@ class ComputeCalibrationState(EventState):
             config.set("External", "Key_3_2", str(trans_mat[2][1]))
             config.set("External", "Key_3_3", str(trans_mat[2][2]))
             config.set("External", "Key_3_4", str(trans_mat[2][3]))
+            config.write(open(hand_eye_path + '/config/' + self.robot_name + '_img_trans.ini', 'wb'))
+            rospy.loginfo('fuck')
         else:
             rospy.logerr('calibration compute fail')
             return 'fail'

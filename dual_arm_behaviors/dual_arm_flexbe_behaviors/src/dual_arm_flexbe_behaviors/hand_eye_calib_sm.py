@@ -37,6 +37,7 @@ class HandEyeCalibSM(Behavior):
 		# parameters of this behavior
 		self.add_parameter('robot_name', 'right_arm')
 		self.add_parameter('en_sim', True)
+		self.add_parameter('default_speed', 30)
 
 		# references to used behaviors
 
@@ -62,7 +63,7 @@ class HandEyeCalibSM(Behavior):
 		with _state_machine:
 			# x:32 y:153
 			OperatableStateMachine.add('init_robot',
-										InitRobotState(robot_name=self.robot_name, en_sim=self.en_sim),
+										InitRobotState(robot_name=self.robot_name, en_sim=self.en_sim, speed=self.default_speed),
 										transitions={'done': 'get_pose', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
@@ -87,14 +88,14 @@ class HandEyeCalibSM(Behavior):
 
 			# x:959 y:36
 			OperatableStateMachine.add('move_robot',
-										IKMoveState(robot_name=self.robot_name, en_sim=self.en_sim),
+										IKMoveState(robot_name=self.robot_name, en_sim=self.en_sim, speed=self.default_speed),
 										transitions={'done': 'capture aruco', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robot_cmd': 'robot_cmd'})
 
 			# x:496 y:359
 			OperatableStateMachine.add('back_home',
-										FixedJointMoveState(robot_name=self.robot_name, en_sim=self.en_sim, speed=100, slide_pos=0, joints=[0,0,0,0,0,0,0]),
+										FixedJointMoveState(robot_name=self.robot_name, en_sim=self.en_sim, speed=self.default_speed, slide_pos=0, joints=[0,0,0,0,0,0,0]),
 										transitions={'done': 'finished', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
