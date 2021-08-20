@@ -181,6 +181,8 @@ class CameraCalib:
                 config.set("External", "Key_3_3", str(trans_mat[2][2]))
                 config.set("External", "Key_3_4", str(trans_mat[2][3]))
 
+                config.write(curr_path + '/config/' + side + '_arm_img_trans.ini')
+
             print('state take_pic end')
 
         elif state == State.finish:
