@@ -166,7 +166,7 @@ class CameraCalib:
                 # config.read(['img_trans_pinto.ini', curr_path])
                 rospack = rospkg.RosPack()
                 curr_path = rospack.get_path('hand_eye')
-                config.read(curr_path + '/config/' + side + '_img_trans.ini')
+                config.read(curr_path + '/config/' + side + '_arm_img_trans.ini')
                 
                 config.set("External", "Key_1_1", str(trans_mat[0][0]))
                 config.set("External", "Key_1_2", str(trans_mat[0][1]))
@@ -180,6 +180,8 @@ class CameraCalib:
                 config.set("External", "Key_3_2", str(trans_mat[2][1]))
                 config.set("External", "Key_3_3", str(trans_mat[2][2]))
                 config.set("External", "Key_3_4", str(trans_mat[2][3]))
+
+                config.write(curr_path + '/config/' + side + '_arm_img_trans.ini')
 
             print('state take_pic end')
 

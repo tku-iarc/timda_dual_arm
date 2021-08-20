@@ -20,6 +20,11 @@
 
 		<param type="boolean" name="en_sim" default="True" label="en_sim" hint="Sets the en_sim" />
 
+		<param type="numeric" name="default_speed" default="30" label="default_speed" hint="Sets the default_speed">
+			<min value="0" />
+			<max value="100" />
+		</param>
+
 	</params>
 
 

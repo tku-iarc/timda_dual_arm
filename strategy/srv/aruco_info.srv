@@ -1,0 +1,8 @@
+string    side_cmd
+
+---
+
+int32[]   ids
+float64[] corners
+float64[] tvecs
+float64[] rvecs

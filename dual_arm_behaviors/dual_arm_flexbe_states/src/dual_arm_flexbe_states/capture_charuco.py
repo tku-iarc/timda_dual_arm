@@ -31,14 +31,15 @@ class CaptureCharUcoState(EventState):
         self.get_feedback_service = self.robot_name +'/get_kinematics_pose'
         self.get_feedback_client = ProxyServiceCaller({self.get_feedback_service: GetKinematicsPose})
 
-    def execute(self, userdata):
+    def execute(self, _):
         if not self.get_feedback_client.is_available(self.get_feedback_service):
+            rospy.logerr("get_feedback_service is not available!")
             return 'fail'
-
         try:
             arm_feedback = self.get_feedback_client.call(self.get_feedback_service, 'arm')
         except rospy.ServiceException as e:
-            print ("Service call failed: %s" % e)
+            rospy.logerr("Service call failed: %s" % e)
+            return 'fail'
         req = hand_eye_calibrationRequest()
         req.end_trans.translation.x = arm_feedback.group_pose.position.x
         req.end_trans.translation.y = arm_feedback.group_pose.position.y
@@ -48,39 +49,15 @@ class CaptureCharUcoState(EventState):
         req.end_trans.rotation.z    = arm_feedback.group_pose.orientation.z
         req.end_trans.rotation.w    = arm_feedback.group_pose.orientation.w
         if not self.hand_eye_client.is_available(self.hand_eye_service):
+            rospy.logerr("get_feedback_service is not available!")
             return 'fail'
         try:
             res = self.hand_eye_client.call(self.hand_eye_service, req)
         except rospy.ServiceException as e:
-            print ("Service call failed: %s" % e)
-
-        if len(res.end2cam_trans) == 16:
-            trans_mat = np.array(res.end2cam_trans).reshape(4,4)
-            # camera_mat = np.array(res.camera_mat).reshape(4, 4)
-            print('##################################################################')
-            print(trans_mat)
-            print('##################################################################')
-            config = ConfigParser.ConfigParser()
-            config.optionxform = str
-            rospack = rospkg.RosPack()
-            hand_eye_path = rospack.get_path('hand_eye')
-            config.read(hand_eye_path + '/config/' + self.robot_name + '_img_trans.ini')
-            
-            config.set("External", "Key_1_1", str(trans_mat[0][0]))
-            config.set("External", "Key_1_2", str(trans_mat[0][1]))
-            config.set("External", "Key_1_3", str(trans_mat[0][2]))
-            config.set("External", "Key_1_4", str(trans_mat[0][3]))
-            config.set("External", "Key_2_1", str(trans_mat[1][0]))
-            config.set("External", "Key_2_2", str(trans_mat[1][1]))
-            config.set("External", "Key_2_3", str(trans_mat[1][2]))
-            config.set("External", "Key_2_4", str(trans_mat[1][3]))
-            config.set("External", "Key_3_1", str(trans_mat[2][0]))
-            config.set("External", "Key_3_2", str(trans_mat[2][1]))
-            config.set("External", "Key_3_3", str(trans_mat[2][2]))
-            config.set("External", "Key_3_4", str(trans_mat[2][3]))
-
+            rospy.logerr("Service call failed: %s" % e)
+            return 'fail'
         return 'done'
 
-    def on_enter(self, userdata):
+    def on_enter(self, _):
         time.sleep(0.2)
         

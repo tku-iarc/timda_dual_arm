@@ -32,6 +32,7 @@ class HandEyeConnector(object):
         self.publish_tf = rospy.get_param('~publish_tf')
         self.tf_suffix = rospy.get_param('~tf_suffix')
         self.marker_id = rospy.get_param('~marker_id')
+        self.optical_frame_id = 'cc'
 
         # Compute the camera base to optical transform
         self.xyz_optical_base = rospy.get_param('~xyz_optical_base', [0,0,0])
@@ -59,6 +60,7 @@ class HandEyeConnector(object):
         # calibration service
 
         self.hand_eye_service = rospy.Service('hand_eye_calibration', hand_eye_calibration, self.aruco_cb)
+        self.hand_eye_service = rospy.Service('compute_calibration', hand_eye_calibration, self.compute_calibration)
 
         rospy.wait_for_service('compute_effector_camera_quick')
         self.calibrate = rospy.ServiceProxy(
@@ -80,12 +82,15 @@ class HandEyeConnector(object):
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
 
-    def compute_calibration(self, msg):
+    def compute_calibration(self, req):
+        res = hand_eye_calibrationResponse()
+        if not req.is_done:
+            return res
+
         rospy.loginfo("Computing from %g poses..." % len(self.hand_world_samples.transforms) )
         result = None
 
         # Get the camera optical frame for convenience
-        optical_frame_id = msg.header.frame_id
         print('self.camera_marker_sample:',self.camera_marker_samples)
         print('self.hand_world_samples:',self.hand_world_samples)
         try:
@@ -100,7 +105,7 @@ class HandEyeConnector(object):
                     (result.effector_camera.translation.x, result.effector_camera.translation.y, result.effector_camera.translation.z),
                     (result.effector_camera.rotation.x, result.effector_camera.rotation.y, result.effector_camera.rotation.z, result.effector_camera.rotation.w),
                     rospy.Time.now(),
-                    optical_frame_id + self.tf_suffix,
+                    self.optical_frame_id + self.tf_suffix,
                     self.camera_parent_frame_id)
 
         rospy.loginfo("Result:\n"+str(result))
@@ -128,7 +133,8 @@ class HandEyeConnector(object):
         R = np.reshape(R, (1,16))[0]
         print('RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR')
         print(R)
-        return R
+        res.end2cam_trans = R
+        return res
 
     def aruco_cb(self, req):
         res = hand_eye_calibrationResponse()
@@ -151,29 +157,25 @@ class HandEyeConnector(object):
             msg.transform.rotation.y = quaternion[1]
             msg.transform.rotation.z = quaternion[2]
             msg.transform.rotation.w = quaternion[3]
-            msg.header.frame_id = 'ar_marker'
+            msg.header.frame_id = self.optical_frame_id
             
             rospy.loginfo("Received marker sample.")
     
-            # Get the camera optical frame for convenience
-            optical_frame_id = msg.header.frame_id
-    
+
             # Update data
             self.hand_world_samples.header.frame_id = 'ee'#optical_frame_id
             self.hand_world_samples.transforms.append(req.end_trans)
     
-            self.camera_marker_samples.header.frame_id = 'cc'#optical_frame_id
+            self.camera_marker_samples.header.frame_id = self.optical_frame_id #optical_frame_id
             self.camera_marker_samples.transforms.append(msg.transform)
     
         if len(self.hand_world_samples.transforms) != len(self.camera_marker_samples.transforms):
             rospy.logerr("Different numbers of hand-world and camera-marker samples.")
             return res
 
-        
         if len(self.hand_world_samples.transforms) < self.samples_min or not req.is_done:
             rospy.logwarn("%d more samples needed..." % (self.samples_min-len(self.hand_world_samples.transforms)))
-            return res
-        else:
-            res.end2cam_trans = self.compute_calibration(msg)
-            return res
+        return res
+
+
 
