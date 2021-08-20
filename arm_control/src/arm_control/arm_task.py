@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
 """Use to generate arm task and run."""
@@ -91,6 +91,7 @@ class ArmTask:
         else:
             self.suction = SuctionTask(self.suc_name)
             self.gripper = RobotiqGripper(self.grip_name)
+        print("03")
 
     def __set_pubSub(self):
         print ("[Arm] name space : " + str(self.name)) 
@@ -621,7 +622,11 @@ class ArmTask:
                 elif 'grap_alcohol' in cmd['gripper_cmd']:
                     #self.gripper.gripper_setting(255, 150)
                     #print('-------------gggg------------')
-                    self.gripper.gripper_pos(40)
+                    self.gripper.gripper_pos(57)
+                elif 'grap_bottle' in cmd['gripper_cmd']:
+                    #self.gripper.gripper_setting(255, 150)
+                    #print('-------------gggg------------')
+                    self.gripper.gripper_pos(117)
                 elif 'squeeze' in cmd['gripper_cmd']:
                     #self.gripper.gripper_setting(255, 150)
                     self.gripper.gripper_pos(100)
@@ -631,7 +636,10 @@ class ArmTask:
                 elif 'grap_scratcher' in cmd['gripper_cmd']:
                     #self.gripper.gripper_setting(255, 150)
                     self.gripper.gripper_pos(200)
-
+                elif 'grap_pose_point' in cmd['gripper_cmd']:
+                    #self.gripper.gripper_setting(255, 150)
+                    self.gripper.gripper_pos(210)
+        # print("is_busy ", self.is_busy, "occupied ", self.occupied, "cmd_queue.empty() ", self.__cmd_queue.empty(), "cmd_queue_2nd.empty() ",self.__cmd_queue_2nd.empty())
         if not self.is_busy and not self.occupied:
             if self.__cmd_queue.empty() and self.__cmd_queue_2nd.empty():
                 self.status = Status.idle

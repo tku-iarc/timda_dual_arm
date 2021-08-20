@@ -52,9 +52,13 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-#add_message_files(
-#  FILES
-#)
+add_message_files(
+  FILES
+  QueSignal.msg
+  TargetValue.msg
+  TimdaMobileStatus.msg
+  ArmStatus.msg
+)
 
 ## Generate services in the 'srv' folder
  add_service_files(
@@ -62,6 +66,8 @@ find_package(catkin REQUIRED COMPONENTS
    aruco_info.srv
    ArUcoInfo.srv
    AssistantState.srv
+   plot_position.srv
+   kmeans_output.srv
  )
 
 ## Generate actions in the 'action' folder

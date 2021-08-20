@@ -22,10 +22,6 @@ c_pose = {'left' :[[[0.38,  0.2, 0.15],  [0.0, 65, 0.0]],
                     [[0.38, -0.2, -0.25],  [0.0, 65, 0.0]],
                     [[0.38, -0.2, -0.65],    [0.0, 65, 0.0]]],
           'left_indx' : 0, 'right_indx' : 0}
-#[0.58,  -0.2, -0.2],  [0.0, 65, 0.0]
-#[0.68,  -0.2, -0.2],  [0.0, 65, 0.0]line
-#[0.4,  -0.2, -0.0],  [0.0, 65, 0.0]
-#[0.4,  -0.5, -0.0],  [0.0, 65, 0.0]
 
 place_pose = [[[-0.38,  0, -0.796],[0.0, 0.0, 0.0]],
               [[-0.38,  0, -0.796],[0.0, 0.0, 0.0]],
@@ -354,27 +350,18 @@ class ExpiredTask:
         rate = rospy.Rate(10)
         rospy.on_shutdown(self.dual_arm.shutdown)
         while True:
-            #print("8")
-            # l_status = self.dual_arm.left_arm.status
-            # # print(l_status)
-            # if l_status == Status.idle or l_status == Status.occupied:
-            #     l_state = self.state_control(self.dual_arm.left_arm.state, 'left')
-            #     self.strategy(l_state, 'left')
-            # rate.sleep()
-            #==============================================================================
+            l_status = self.dual_arm.left_arm.status
+            if l_status == Status.idle or l_status == Status.occupied:
+                l_state = self.state_control(self.dual_arm.left_arm.state, 'left')
+                self.strategy(l_state, 'left')
+            rate.sleep()
             r_status = self.dual_arm.right_arm.status
             if r_status == Status.idle or r_status == Status.occupied:
                 r_state = self.state_control(self.dual_arm.right_arm.state, 'right')
                 self.strategy(r_state, 'right')
             rate.sleep()
-            # if l_state is None and r_state is None:
-            #     if l_status == Status.idle and r_status == Status.idle:
-            # #         return
-            # if l_state is None :
-            #     if l_status == Status.idle:
-            #         return
-            if r_state is None :
-                if r_status == Status.idle:
+            if l_state is None and r_state is None:
+                if l_status == Status.idle and r_status == Status.idle:
                     return
         
 if __name__ == '__main__':
