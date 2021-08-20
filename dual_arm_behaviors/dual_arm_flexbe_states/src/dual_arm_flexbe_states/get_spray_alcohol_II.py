@@ -43,7 +43,7 @@ class GetSprayAlcoholPoseII(EventState):
 		else:
 			userdata.robot_cmd = Command()
 			userdata.robot_cmd['mode'] = 'p2p'
-			userdata.robot_cmd['speed'] = 20
+			userdata.robot_cmd['speed'] = 35
 			userdata.robot_cmd['pos'] = c_pose[self.robot_name][self.pose_indx][0]
 			userdata.robot_cmd['euler'] = c_pose[self.robot_name][self.pose_indx][1]
 			userdata.robot_cmd['phi'] = c_pose[self.robot_name][self.pose_indx][2]

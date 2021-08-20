@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<behavior name="Customer_service">
+<behavior name="Customer Service">
 
-	<executable package_path="dual_arm_flexbe_behaviors.customer_service_sm" class="Customer_serviceSM" />
-	<tagstring>1.0</tagstring>
+	<executable package_path="dual_arm_flexbe_behaviors.customer_service_sm" class="CustomerServiceSM" />
+	<tagstring>2.0</tagstring>
 	<author>Luis</author>
-	<date>Wed Aug 18 2021</date>
+	<date>Thu Aug 19 2021</date>
 	<description>
-		Sample behavior of dual arm customer service
+		dual arm customer service behaviors
 	</description>
 
 
 	<!-- Contained Behaviors -->
-	<contains name="wipe_desk" />
 	<contains name="scratch_desk" />
+	<contains name="wipe_task_right" />
+	<contains name="wipe_task_left" />
 
 	<!-- Available Parameters -->
 	<params>
-
-		<param type="text" name="robot_name" default="right_arm" label="robot_name" hint="Sets the robot_name" />
 
 		<param type="boolean" name="en_sim" default="False" label="en_sim" hint="Sets the en_sim" />
 

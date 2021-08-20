@@ -57,6 +57,7 @@ add_message_files(
   QueSignal.msg
   TargetValue.msg
   TimdaMobileStatus.msg
+  ArmStatus.msg
 )
 
 ## Generate services in the 'srv' folder

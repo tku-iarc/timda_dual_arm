@@ -9,7 +9,8 @@
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
 from dual_arm_flexbe_behaviors.scratch_desk_sm import scratch_deskSM
-from dual_arm_flexbe_behaviors.wipe_desk_sm import wipe_deskSM
+from dual_arm_flexbe_behaviors.wipe_task_left_sm import wipe_task_leftSM
+from dual_arm_flexbe_behaviors.wipe_task_right_sm import wipe_task_rightSM
 from dual_arm_flexbe_states.wait_timda_mobile import WaitTimdaMobile
 # Additional imports can be added inside the following tags
 # [MANUAL_IMPORT]
@@ -18,26 +19,26 @@ from dual_arm_flexbe_states.wait_timda_mobile import WaitTimdaMobile
 
 
 '''
-Created on Wed Aug 18 2021
+Created on Thu Aug 19 2021
 @author: Luis
 '''
-class Customer_serviceSM(Behavior):
+class CustomerServiceSM(Behavior):
 	'''
-	Sample behavior of dual arm customer service
+	dual arm customer service behaviors
 	'''
 
 
 	def __init__(self):
-		super(Customer_serviceSM, self).__init__()
-		self.name = 'Customer_service'
+		super(CustomerServiceSM, self).__init__()
+		self.name = 'Customer Service'
 
 		# parameters of this behavior
-		self.add_parameter('robot_name', 'right_arm')
 		self.add_parameter('en_sim', False)
 
 		# references to used behaviors
+		self.add_behavior(wipe_task_leftSM, 'Container/wipe_task_left')
+		self.add_behavior(wipe_task_rightSM, 'Container/wipe_task_right')
 		self.add_behavior(scratch_deskSM, 'scratch_desk')
-		self.add_behavior(wipe_deskSM, 'wipe_desk')
 
 		# Additional initialization code can be added inside the following tags
 		# [MANUAL_INIT]
@@ -49,7 +50,7 @@ class Customer_serviceSM(Behavior):
 
 
 	def create(self):
-		# x:825 y:207, x:347 y:545
+		# x:725 y:300, x:399 y:40
 		_state_machine = OperatableStateMachine(outcomes=['finished', 'failed'])
 
 		# Additional creation code can be added inside the following tags
@@ -57,24 +58,44 @@ class Customer_serviceSM(Behavior):
 		
 		# [/MANUAL_CREATE]
 
+		# x:30 y:365, x:130 y:365, x:230 y:365, x:330 y:365
+		_sm_container_0 = ConcurrencyContainer(outcomes=['finished', 'failed'], conditions=[
+										('finished', [('wipe_task_left', 'finished'), ('wipe_task_right', 'finished')]),
+										('failed', [('wipe_task_left', 'failed'), ('wipe_task_right', 'failed')])
+										])
+
+		with _sm_container_0:
+			# x:50 y:102
+			OperatableStateMachine.add('wipe_task_right',
+										self.use_behavior(wipe_task_rightSM, 'Container/wipe_task_right'),
+										transitions={'finished': 'finished', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
+
+			# x:293 y:103
+			OperatableStateMachine.add('wipe_task_left',
+										self.use_behavior(wipe_task_leftSM, 'Container/wipe_task_left'),
+										transitions={'finished': 'finished', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
+
+
 
 		with _state_machine:
-			# x:85 y:39
+			# x:30 y:40
 			OperatableStateMachine.add('wait_timda_mobile',
 										WaitTimdaMobile(en_sim=self.en_sim),
 										transitions={'done': 'scratch_desk', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
-			# x:484 y:32
-			OperatableStateMachine.add('wipe_desk',
-										self.use_behavior(wipe_deskSM, 'wipe_desk'),
-										transitions={'finished': 'finished', 'failed': 'failed'},
-										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
-
-			# x:256 y:35
+			# x:179 y:152
 			OperatableStateMachine.add('scratch_desk',
 										self.use_behavior(scratch_deskSM, 'scratch_desk'),
-										transitions={'finished': 'wipe_desk', 'failed': 'failed'},
+										transitions={'finished': 'Container', 'failed': 'failed'},
+										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
+
+			# x:403 y:236
+			OperatableStateMachine.add('Container',
+										_sm_container_0,
+										transitions={'finished': 'finished', 'failed': 'failed'},
 										autonomy={'finished': Autonomy.Inherit, 'failed': Autonomy.Inherit})
 
 
