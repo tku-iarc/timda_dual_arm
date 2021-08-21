@@ -4,14 +4,12 @@
     <arg name="en_sim" default="false"/>
     <arg name="arm_type" default="dual_arm"/>
 
-    <arg name="left_comport"   default="/dev/ttyUSB1" />
-    <arg name="right_comport"   default="/dev/ttyUSB0" />
+    <arg name="left_comport"   default="/dev/ttyUSB0" />
+    <arg name="right_comport"   default="/dev/ttyUSB1" />
 
     <include file="$(find manipulator_h_manager)/launch/dual_arm.launch">
         <arg name="en_sim" value="$(arg en_sim)"/>
         <arg name="arm_type" value="$(arg arm_type)"/>
-        <arg name="color_width" default="1920" />
-        <arg name="color_high" default="1080"/>
     </include>
     <group ns="left_arm">
         <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
