@@ -8,7 +8,7 @@
 ###########################################################
 
 from flexbe_core import Behavior, Autonomy, OperatableStateMachine, ConcurrencyContainer, PriorityContainer, Logger
-from dual_arm_flexbe_states.IK_move import IKMoveState
+from customer_flexbe_states.IK_move import IKMoveState as customer_flexbe_states__IKMoveState
 from dual_arm_flexbe_states.fixed_joint_move import FixedJointMoveState
 from dual_arm_flexbe_states.fixed_pose_move import FixedPoseMoveState
 from dual_arm_flexbe_states.get_pose import GetPoseState
@@ -62,7 +62,7 @@ class SingleArmSampleSM(Behavior):
 		with _state_machine:
 			# x:32 y:153
 			OperatableStateMachine.add('init_robot',
-										InitRobotState(robot_name=self.robot_name, en_sim=self.en_sim),
+										InitRobotState(robot_name=self.robot_name, en_sim=self.en_sim, speed=100),
 										transitions={'done': 'fixed_joints_test', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off})
 
@@ -87,7 +87,7 @@ class SingleArmSampleSM(Behavior):
 
 			# x:959 y:36
 			OperatableStateMachine.add('move_robot',
-										IKMoveState(robot_name=self.robot_name, en_sim=self.en_sim),
+										customer_flexbe_states__IKMoveState(robot_name=self.robot_name, en_sim=self.en_sim),
 										transitions={'done': 'get_pose', 'failed': 'failed'},
 										autonomy={'done': Autonomy.Off, 'failed': Autonomy.Off},
 										remapping={'robot_cmd': 'robot_cmd'})
