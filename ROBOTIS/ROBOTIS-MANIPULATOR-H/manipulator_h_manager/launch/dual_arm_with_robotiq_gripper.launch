@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+
+<launch>    
+    <arg name="en_sim" default="false"/>
+    <arg name="arm_type" default="dual_arm"/>
+
+    <arg name="left_comport"   default="/dev/ttyUSB0" />
+    <arg name="right_comport"   default="/dev/ttyUSB1" />
+
+    <include file="$(find manipulator_h_manager)/launch/dual_arm.launch">
+        <arg name="en_sim" value="$(arg en_sim)"/>
+        <arg name="arm_type" value="$(arg arm_type)"/>
+    </include>
+    <group ns="left_arm">
+        <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
+
+            <param name="comport" value="$(arg left_comport)"/>
+        </node>
+    </group>
+    <group ns="right_arm">
+        <node pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" name="robotiq2FGripper" output="screen" >
+            <param name="comport" value="$(arg right_comport)"/>
+        </node>
+    </group>
+
+</launch>

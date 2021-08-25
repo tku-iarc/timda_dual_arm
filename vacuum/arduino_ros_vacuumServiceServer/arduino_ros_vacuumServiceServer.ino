@@ -50,9 +50,12 @@ void callback_left(const VacuumCmd::Request& , VacuumCmd::Response& );
 //bool callback_right(const VacuumCmd::Request& , VacuumCmd::Response& );
 //bool callback_left(const VacuumCmd::Request& , VacuumCmd::Response& );
 void armTaskCallback(const std_msgs::Bool& msg);
+void AlertControl(const std_msgs::Int32& msg);
 ros::ServiceServer<VacuumCmd::Request, VacuumCmd::Response> vac_srv_right("right/suction_cmd", &callback_right);
 ros::ServiceServer<VacuumCmd::Request, VacuumCmd::Response> vac_srv_left("left/suction_cmd", &callback_left);
 ros::Subscriber<std_msgs::Bool> armTask_sub("/arduino/mode", &armTaskCallback);
+//ros::Subscriber<std_msgs::Bool> armTask_sub("/arduino/mode", &armTaskCallback);
+ros::Subscriber<std_msgs::Int32> alarm_sub("AlertControl_ros", &AlertControl);
 
 DynamixelClass Dxl_right(Serial1);
 DynamixelClass Dxl_left(Serial3);
@@ -85,7 +88,7 @@ const int is_grip_left  = 37;
 const int is_grip_right = 39;
 const int is_stop       = 35;
 
-const int led_pin = 13;
+const int alarm_pin = 13;     ///////////////////////////////////////////////////////////////////////////////////////////
 const int vac_pin_right = 33;
 const int vac_pin_left  = 31;
 int ID = 0;
@@ -99,18 +102,20 @@ void setup()
   nh.advertise(isGripL);
   nh.advertise(isStop);
   nh.subscribe(armTask_sub);
+  nh.subscribe(alarm_sub);
   nh.advertise(arduinoPrint);
   
   nh.advertiseService(vac_srv_right);
   nh.advertiseService(vac_srv_left);
   
-  pinMode(led_pin, OUTPUT);
+  pinMode(alarm_pin, OUTPUT);       ///////////////////////////////////////////////////////////////////////////////////////////
   pinMode(vac_pin_right, OUTPUT);
   pinMode(vac_pin_left, OUTPUT);
   
   pinMode(is_grip_left, INPUT_PULLUP);
   pinMode(is_grip_right, INPUT_PULLUP);
   pinMode(is_stop, INPUT_PULLUP);
+
 
   Dxl_right.begin(1000000, 2);
   delay(1000);
@@ -158,6 +163,23 @@ void setup()
 #endif
   }
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AlertControl( const std_msgs::Int32& msg){
+
+  if(msg.data == 1)
+  {
+    //str_msg.data = "ALERT!!!!!!!!!!!!!!!!!!!!!!!!!!";
+    //arduinoPrint.publish(&str_msg);
+    digitalWrite(alarm_pin, HIGH);
+  }
+  else if(msg.data == 0)
+  {
+    digitalWrite(alarm_pin, LOW);
+  }
+
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void armTaskCallback(const std_msgs::Bool& msg)
 {
@@ -295,12 +317,12 @@ void callback(const VacuumCmd::Request& req, VacuumCmd::Response& res, bool isRi
     str_msg.data = "FUCKFUCK";
     arduinoPrint.publish(&str_msg);
     digitalWrite(vac_pin, HIGH);
-    digitalWrite(led_pin, HIGH);
+    //digitalWrite(led_pin, HIGH);
   }
   else if (strcmp(req.cmd, "vacuumOff") == 0)
   {   
     digitalWrite(vac_pin, LOW);
-    digitalWrite(led_pin, LOW);
+    //digitalWrite(led_pin, LOW);
   }
   else
   {
