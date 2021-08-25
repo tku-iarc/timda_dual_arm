@@ -398,7 +398,11 @@ bool ManipulatorKinematicsDynamics::inverseKinematics(int to, Eigen::MatrixXd ta
   }
 
   ik_success = inverseKinematics_(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, is_p2p);
-
+  if( !ik_success )
+  {
+    Eigen::MatrixXd rpy = rotation2rpy(tar_orientation);
+    std::cout<<"IK Failed: pos = "<< tar_position << ", " << rpy << ", " << tar_slide_pos << std::endl;
+  }
   forwardKinematics(7);
   
   int joint_num;
@@ -444,7 +448,11 @@ bool ManipulatorKinematicsDynamics::inverseKinematics_test(Eigen::MatrixXd tar_p
 
   // ik_success = inverseKinematics_old(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, true, false);
   ik_success = inverseKinematics_(tar_position, tar_orientation, tar_phi, tar_slide_pos, Old_JointAngle, true, false);
-
+  if(!ik_success)
+  {
+    Eigen::MatrixXd rpy = rotation2rpy(tar_orientation);
+    std::cout<<"IK Failed: pos = "<< tar_position << ", " << rpy << ", " << tar_slide_pos << std::endl;
+  }
   int joint_num;
   std::vector<int> idx = findRoute(8);
 
@@ -711,16 +719,16 @@ bool ManipulatorKinematicsDynamics::inverseKinematics_( Eigen::VectorXd goal_pos
     if(AA)
     {
       if(BB)
-        ROS_INFO("[FUCK IKFIAL] Solution A1B1");
+        ROS_ERROR("[FUCK IKFIAL] Solution A1B1");
       else
-        ROS_INFO("[FUCK IKFIAL] Solution A1B2");
+        ROS_ERROR("[FUCK IKFIAL] Solution A1B2");
     }
     else
     {
       if(BB)
-        ROS_INFO("[FUCK IKFIAL] Solution A2B1");
+        ROS_ERROR("[FUCK IKFIAL] Solution A2B1");
       else
-        ROS_INFO("[FUCK IKFIAL] Solution A2B2");
+        ROS_ERROR("[FUCK IKFIAL] Solution A2B2");
     }
   }
 
