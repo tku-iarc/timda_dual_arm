@@ -350,8 +350,9 @@ bool BaseModule::checkRangeLimitCallback(manipulator_h_base_module_msgs::CheckRa
                                  req.pose.orientation.z);
 
   rotation = robotis_framework::convertQuaternionToRotation(quaterniond);
-  
+  robotis_->is_ik = true;
   res.limit_value = manipulator_->limit_check(positoin, rotation);
+  robotis_->is_ik = false;
   res.is_limit = (res.limit_value > 1)? true : false;
   
   return true;
