@@ -127,7 +127,7 @@ class HandEyeTrans:
         result = self._base_tool_trans * np.linalg.inv(self._rtool_tool_trans) * self._rtool_eye_trans * eye_obj_trans
         res = eye2baseResponse()
         res.trans = np.array(result).reshape(-1)
-        res.pos = np.array(result[2, :3]).reshape(-1)
+        res.pos = np.array(result[0:3, 3]).reshape(-1)
         res.euler = self.__rotation2rpy(result)
         return res
         
