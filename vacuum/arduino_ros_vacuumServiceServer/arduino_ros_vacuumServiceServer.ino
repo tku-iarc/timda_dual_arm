@@ -55,7 +55,7 @@ ros::ServiceServer<VacuumCmd::Request, VacuumCmd::Response> vac_srv_right("right
 ros::ServiceServer<VacuumCmd::Request, VacuumCmd::Response> vac_srv_left("left/suction_cmd", &callback_left);
 ros::Subscriber<std_msgs::Bool> armTask_sub("/arduino/mode", &armTaskCallback);
 //ros::Subscriber<std_msgs::Bool> armTask_sub("/arduino/mode", &armTaskCallback);
-ros::Subscriber<std_msgs::Int32> alarm_sub("AlertControl_ros", &AlertControl);
+ros::Subscriber<std_msgs::Int32> alarm_sub("AlertControl_ros", &AlertControl); 
 
 DynamixelClass Dxl_right(Serial1);
 DynamixelClass Dxl_left(Serial3);
@@ -167,14 +167,17 @@ void setup()
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void AlertControl( const std_msgs::Int32& msg){
 
-  if(msg.data == 1)
-  {
-    //str_msg.data = "ALERT!!!!!!!!!!!!!!!!!!!!!!!!!!";
-    //arduinoPrint.publish(&str_msg);
+  //alarmstate = msg.data;
+  if (msg.data == 1) {
     digitalWrite(alarm_pin, HIGH);
   }
-  else if(msg.data == 0)
-  {
+  else if (msg.data == 21) {
+    digitalWrite(alarm_pin, HIGH);
+  }
+  else if (msg.data == 22) {
+    digitalWrite(alarm_pin, HIGH);
+  }
+  else if (msg.data == 0) {
     digitalWrite(alarm_pin, LOW);
   }
 

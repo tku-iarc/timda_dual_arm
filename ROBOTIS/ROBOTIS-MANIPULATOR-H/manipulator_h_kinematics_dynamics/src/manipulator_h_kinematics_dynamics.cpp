@@ -429,7 +429,11 @@ bool ManipulatorKinematicsDynamics::inverseKinematics(int to, Eigen::MatrixXd ta
     return false;
   }
   else
+  {
+    Eigen::MatrixXd rpy = rotation2rpy(tar_orientation);
+    std::cout<<"Failed pose: "<<tar_position<<", "<< rpy << ", " << tar_slide_pos<<std::endl;
     return false;
+  }
 }
 
 bool ManipulatorKinematicsDynamics::inverseKinematics_test(Eigen::MatrixXd tar_position,
