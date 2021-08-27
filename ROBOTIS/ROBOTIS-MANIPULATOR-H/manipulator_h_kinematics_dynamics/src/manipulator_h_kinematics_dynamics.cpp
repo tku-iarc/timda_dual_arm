@@ -1395,40 +1395,57 @@ void ManipulatorKinematicsDynamics::getPhiAngle()
 
 double ManipulatorKinematicsDynamics::limit_check(Eigen::Vector3d &goal_position, Eigen::Matrix3d &rotation)
 {
-  double Lsw, Low;
+  double slide_pos = 0;
   double tar_slide_pos = 0;
   Eigen::Vector3d Oc;
-  Eigen::Vector3d test_pos;
- 
+  bool slide_success = slideInverseKinematics(goal_position, rotation, slide_pos, tar_slide_pos, true);
   Oc << goal_position(0)-d4*rotation(0,2), goal_position(1)-d4*rotation(1,2), goal_position(2)-d4*rotation(2,2);
-  
-  test_pos = Oc;
-  test_pos(1) = test_pos(1) - (d1*RL_prm);
-  if(Oc(2) < -0.8)
-  {
-    test_pos(2) += 0.8;
-    tar_slide_pos = -0.8;
-  }
-  else if (Oc(2) < -0.01)
-  {
-    test_pos(2) = 0.01;
-    tar_slide_pos = Oc(2)+0.01;
-  }
-  Oc(2) = 0;
-  Lsw = test_pos.norm();
-  Low = Oc.norm();
-  if(Lsw < (d2+d3) && Low > 0.13)
+  Oc(1) = Oc(1) - (d1*RL_prm);
+  Oc(2) = Oc(2) - tar_slide_pos;
+  double Lgs = Oc.norm();
+  if(slide_success)
   {
     bool ik_success = inverseKinematics_test(goal_position, rotation, 0, tar_slide_pos);
     if(!ik_success)
       return 10;
-    double range = Lsw/(d2+d3);
+    double range = Lgs/(d2+d3);
     return range;
   }
   else
-    std::cout<<"Out of range !!!"<<Oc<<std::endl;
-  return 10;
+    return 10;
+  // double Lsw, Low;
+  // double tar_slide_pos = 0;
+  // Eigen::Vector3d Oc;
+  // Eigen::Vector3d test_pos;
+ 
+  // Oc << goal_position(0)-d4*rotation(0,2), goal_position(1)-d4*rotation(1,2), goal_position(2)-d4*rotation(2,2);
   
+  // test_pos = Oc;
+  // test_pos(1) = test_pos(1) - (d1*RL_prm);
+  // if(Oc(2) < -0.8)
+  // {
+  //   test_pos(2) += 0.8;
+  //   tar_slide_pos = -0.8;
+  // }
+  // else if (Oc(2) < -0.01)
+  // {
+  //   test_pos(2) = 0.01;
+  //   tar_slide_pos = Oc(2)+0.01;
+  // }
+  // Oc(2) = 0;
+  // Lsw = test_pos.norm();
+  // Low = Oc.norm();
+  // if(Lsw <= (d2+d3 - 0.01) && Low > 0.15)
+  // {
+  //   bool ik_success = inverseKinematics_test(goal_position, rotation, 0, tar_slide_pos);
+  //   if(!ik_success)
+  //     return 10;
+  //   double range = Lsw/(d2+d3);
+  //   return range;
+  // }
+  // else
+  //   std::cout<<"Out of range !!!"<<Oc<<std::endl;
+  // return 10;
 }
 
 Eigen::MatrixXd ManipulatorKinematicsDynamics::rotationX( double angle )
