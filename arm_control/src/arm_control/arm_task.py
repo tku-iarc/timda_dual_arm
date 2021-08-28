@@ -285,15 +285,17 @@ class ArmTask:
                                [0.0,           0.0,    1.0]])
         return origin * rotationY * rotationX * rotationZ
 
+    @staticmethod
     def euler2rotation(euler): # static fun
         roll, pitch, yaw = euler
 
-        origin    = np.mat([[1, 0, 0],
-                            [0, -1, 0],
-                            [0, 0, -1]])
-        rotationX = tf.rotation_matrix(yaw, [1, 0, 0])
-        rotationY = tf.rotation_matrix(pitch, [0, 1, 0])
-        rotationZ = tf.rotation_matrix(roll, [0, 0, 1])
+        origin    = np.mat([[1, 0, 0, 0],
+                            [0, -1, 0, 0],
+                            [0, 0, -1, 0],
+                            [0, 0,  0, 1]])
+        rotationX = tf.transformations.rotation_matrix(yaw, [1, 0, 0])
+        rotationY = tf.transformations.rotation_matrix(pitch, [0, 1, 0])
+        rotationZ = tf.transformations.rotation_matrix(roll, [0, 0, 1])
         return origin * rotationY * rotationX * rotationZ
 
     def euler2quaternion(self, euler):
@@ -301,6 +303,7 @@ class ArmTask:
         quaternion = tf.transformations.quaternion_from_euler(-pitch+pi, -yaw, roll-pi, 'ryxz')
         return (quaternion)
 
+    @staticmethod
     def euler2quaternion(euler): # static fun
         roll, pitch, yaw = euler
         quaternion = tf.transformations.quaternion_from_euler(-pitch+pi, -yaw, roll-pi, 'ryxz')
@@ -414,6 +417,7 @@ class ArmTask:
         except rospy.ServiceException as e:
             print ("Service call failed: %s" % e)
 
+    @staticmethod
     def check_range_limit(side, pos=_POS, euler=_ORI, phi=_PHI): # static fun
         roll, pitch, yaw = copy.deepcopy(euler)
         roll  = roll * pi/ 180
@@ -574,6 +578,7 @@ class ArmTask:
         )
         return suc_angle
 
+    @staticmethod
     def suc2vector(vec, euler): # static function
         rotation = ArmTask.euler2rotation(euler)
         vec = np.array(vec)
