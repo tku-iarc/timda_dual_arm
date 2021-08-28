@@ -433,7 +433,11 @@ bool ManipulatorKinematicsDynamics::inverseKinematics(int to, Eigen::MatrixXd ta
     return false;
   }
   else
+  {
+    Eigen::MatrixXd rpy = rotation2rpy(tar_orientation);
+    std::cout<<"Failed pose: "<<tar_position<<", "<< rpy << ", " << tar_slide_pos<<std::endl;
     return false;
+  }
 }
 
 bool ManipulatorKinematicsDynamics::inverseKinematics_test(Eigen::MatrixXd tar_position,
@@ -552,6 +556,7 @@ bool ManipulatorKinematicsDynamics::inverseKinematics_( Eigen::VectorXd goal_pos
   Oc << goal_position(0)-d4*R07(0,2), goal_position(1)-d4*R07(1,2), goal_position(2)-d4*R07(2,2);
 
   DHTABLE(0,2) = slide_position;
+  ROS_INFO("DHTABLE(0,2) in IK begin: %f", DHTABLE(0,2));
 
   Ps << 0, d1*cos(DHTABLE(0,3)), slide_position;   
   Vsw = Oc - Ps;
@@ -781,6 +786,7 @@ bool ManipulatorKinematicsDynamics::inverseKinematics_( Eigen::VectorXd goal_pos
     for (int id = 0; id <= MAX_JOINT_ID; id++)
       manipulator_link_data_[id]->joint_angle_test = JointAngle.coeff(id);
   }
+  ROS_INFO("DHTABLE(0,2) in IK begin: %f", DHTABLE(0,2));
   return ik_success;
 }
 
@@ -1170,7 +1176,7 @@ bool ManipulatorKinematicsDynamics::slideInverseKinematics(Eigen::Vector3d& goal
   Lmin = 0.15;
   Smax = 0;
   Smin = -0.8;
-  
+  ROS_INFO("Lgs in slide IK: %f", Lgs);
   if(Lgs > d2+d3-0.01)
   {
     std::cout<<"Out of range 1 !!!"<<std::endl;
@@ -1228,6 +1234,7 @@ bool ManipulatorKinematicsDynamics::slideInverseKinematics(Eigen::Vector3d& goal
   weight = Lgs / Lmax;
   slide_position = weight * fun1 + (1-weight) * fun2;
   goal_slide_pos = (slide_position <= Smax) ? (slide_position >= Smin) ? slide_position : Smin : Smax;
+  ROS_INFO("goal_slide_pos in slide IK: %f", goal_slide_pos);
   if(fabs(goal_slide_pos - slide_pos) > 0.001 && !is_p2p)
     goal_slide_pos = slide_pos + 0.001 * (goal_slide_pos - slide_pos > 0) ? 1 : -1;
   if(slide_position > Smax || slide_position < Smin)
@@ -1403,6 +1410,8 @@ double ManipulatorKinematicsDynamics::limit_check(Eigen::Vector3d &goal_position
   Oc(1) = Oc(1) - (d1*RL_prm);
   Oc(2) = Oc(2) - tar_slide_pos;
   double Lgs = Oc.norm();
+  ROS_INFO("Lgs in linit check: %f", Lgs);
+  ROS_INFO("tar_slide_pos in linit check: %f", tar_slide_pos);
   if(slide_success)
   {
     bool ik_success = inverseKinematics_test(goal_position, rotation, 0, tar_slide_pos);
