@@ -418,7 +418,7 @@ class ArmTask:
             print ("Service call failed: %s" % e)
 
     @staticmethod
-    def check_range_limit(side, pos=_POS, euler=_ORI, phi=_PHI): # static fun
+    def check_range_limit_stc(side, pos=_POS, euler=_ORI, phi=_PHI): # static fun
         roll, pitch, yaw = copy.deepcopy(euler)
         roll  = roll * pi/ 180
         pitch = pitch* pi/ 180
