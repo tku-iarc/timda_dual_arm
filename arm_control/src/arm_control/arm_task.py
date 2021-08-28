@@ -285,7 +285,23 @@ class ArmTask:
                                [0.0,           0.0,    1.0]])
         return origin * rotationY * rotationX * rotationZ
 
+    def euler2rotation(euler): # static fun
+        roll, pitch, yaw = euler
+
+        origin    = np.mat([[1, 0, 0],
+                            [0, -1, 0],
+                            [0, 0, -1]])
+        rotationX = tf.rotation_matrix(yaw, [1, 0, 0])
+        rotationY = tf.rotation_matrix(pitch, [0, 1, 0])
+        rotationZ = tf.rotation_matrix(roll, [0, 0, 1])
+        return origin * rotationY * rotationX * rotationZ
+
     def euler2quaternion(self, euler):
+        roll, pitch, yaw = euler
+        quaternion = tf.transformations.quaternion_from_euler(-pitch+pi, -yaw, roll-pi, 'ryxz')
+        return (quaternion)
+
+    def euler2quaternion(euler): # static fun
         roll, pitch, yaw = euler
         quaternion = tf.transformations.quaternion_from_euler(-pitch+pi, -yaw, roll-pi, 'ryxz')
         return (quaternion)
@@ -391,6 +407,35 @@ class ArmTask:
         try:
             range_limit = rospy.ServiceProxy(
                 self.name + '/check_range_limit',
+                CheckRangeLimit
+            )
+            res = range_limit(req)
+            return res.limit_value, res.is_limit
+        except rospy.ServiceException as e:
+            print ("Service call failed: %s" % e)
+
+    def check_range_limit(side, pos=_POS, euler=_ORI, phi=_PHI): # static fun
+        roll, pitch, yaw = copy.deepcopy(euler)
+        roll  = roll * pi/ 180
+        pitch = pitch* pi/ 180
+        yaw   = yaw  * pi/ 180
+
+        req = CheckRangeLimitRequest()
+        req.pose.position.x = pos[0]
+        req.pose.position.y = pos[1]
+        req.pose.position.z = pos[2]
+
+        quaternion = ArmTask.euler2quaternion((roll, pitch, yaw))
+        req.pose.orientation.x = quaternion[0]
+        req.pose.orientation.y = quaternion[1]
+        req.pose.orientation.z = quaternion[2]
+        req.pose.orientation.w = quaternion[3]
+        req.phi = radians(phi)
+
+        rospy.wait_for_service(side + '_arm/check_range_limit')
+        try:
+            range_limit = rospy.ServiceProxy(
+                side + '_arm/check_range_limit',
                 CheckRangeLimit
             )
             res = range_limit(req)
@@ -528,6 +573,22 @@ class ArmTask:
             phi
         )
         return suc_angle
+
+    def suc2vector(vec, euler): # static function
+        rotation = ArmTask.euler2rotation(euler)
+        vec = np.array(vec)
+        rotation = np.array(rotation)
+        a = rotation[0:3, 2].reshape(-1)
+        sucangle = -acos(np.dot(a, -1*vec)/(np.linalg.norm(a) * np.linalg.norm(vec)))
+        b = np.dot(a, vec)
+        c = vec - b*a
+        n = rotation[0:3, 0]
+        roll = acos(np.dot(c, n)/(np.linalg.norm(c) * np.linalg.norm(n)))
+        o = rotation[0:3, 1]
+        cos_oc = np.dot(o, c)/(np.linalg.norm(o) * np.linalg.norm(c))
+        if cos_oc < 0:
+            roll = -1 * roll
+        return degrees(sucangle), degrees(roll)
 
     def wait_busy(self):
         """This is blocking method."""
