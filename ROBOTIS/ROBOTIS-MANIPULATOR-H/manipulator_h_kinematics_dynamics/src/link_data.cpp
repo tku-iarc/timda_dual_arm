@@ -45,6 +45,7 @@ LinkData::LinkData()
   joint_limit_min_    = -100.0;
 
   joint_angle_        = 0.0;
+  joint_angle_test    = 0.0;
   joint_velocity_     = 0.0;
   joint_acceleration_ = 0.0;
   slide_position_     = 0.0;

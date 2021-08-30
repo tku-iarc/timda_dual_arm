@@ -797,6 +797,7 @@ void BaseModule::generateJointTrajProcess()
   double tol = 90 * (mov_speed / 100) * DEGREE2RADIAN; // rad per sec
   double mov_time = 1.5;
   
+  manipulator_->manipulator_link_data_[0]->mov_speed_ = mov_speed;
 
   double max_diff, abs_diff, slide_diff;
   slide_diff = fabs(robotis_->joint_pose_msg_.slide_pos - slide_->slide_pos);
